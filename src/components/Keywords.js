@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
 import { BrowserRouter as Router, Route, Link, redirect } from "react-router-dom";
 import { Button } from "@chakra-ui/react";
 import { format, formatDistance, formatRelative, subDays } from 'date-fns'
 import { json } from "react-router-dom";
 import Keyword from "./Keyword";
-// import axios from 'axios'
 
 const Keywords = (props) => {
-  // const navigate = useNavigate();
 
   return (
     <div>
@@ -25,7 +22,7 @@ const Keywords = (props) => {
         <tbody>
           {props.keywords.map((k, index) => (
             <tr key={index}>
-              <td><Link to={`/keywords/${k.ID}`}>{k.Word}</Link></td>
+              <td><Link to={`/keywords/${k.KeywordId}`}>{k.Word}</Link></td>
               {/* <td><Route path={`/keywords/${k.ID}`}><Keyword /><Route/></td> */}
 
 
@@ -40,7 +37,7 @@ const Keywords = (props) => {
 
               </td>
               {/* <td>  {format(Date.parse(k.CreatedAt),"yyyy/M/d HH:mm")}  </td> */}
-              <td><Button onClick={() => props.confirmDelete(k.ID)} colorScheme={"gray"}  variant={"outline"}>
+              <td><Button onClick={() => props.confirmDelete(k.KeywordId)} colorScheme={"gray"}  variant={"outline"}>
                 🗑️ Delete
                 </Button>
               </td>

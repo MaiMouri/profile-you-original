@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"os/exec"
 	"time"
 
@@ -86,12 +85,7 @@ func main() {
 	// create a new keyword
 	r.POST("/keyword/create/:word", keywordController.CreateKeyword)
 	r.POST("/keyword/update/:id", keywordController.UpdateKeyword)
-	r.DELETE("/keyword/delete/:id", keywordController.DeleteKeyword)
-	r.GET("/message", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Hello world",
-		})
-	})
+	r.POST("/keyword/delete/", keywordController.DeleteKeyword)
 	r.Run(":8080")
 
 	// out, err := exec.Command("/bin/bash", "python3 api/api.py").Output()

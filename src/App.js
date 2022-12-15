@@ -19,12 +19,12 @@ import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
 import Keywords from "./components/Keywords";
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Keyword from "./components/Keyword";
-import { Outlet } from "react-router-dom";
 
 
 const App = () => {
+  const navigate = useNavigate();
   const [image, updateImage] = useState();
   const [word, updateWord] = useState();
   const [loading, updateLoading] = useState();
@@ -81,23 +81,27 @@ const App = () => {
         //   console.log(res.data);
         // })
         let headers = new Headers();
+        headers.append("Content-Type", "application/json");
         // headers.append("Authorization", "Bearer " + jwtToken)
+
+        const requestBody = keyword;
+        requestBody.keywordId = id;
+
         const requestOptions = {
-          method: "DELETE",
+          method: "POST",
           headers: headers,
+          body: JSON.stringify(requestBody)
         };
         
-        const url = `http://localhost:8080/keyword/delete/${id}`;
-        
+        const url = `http://localhost:8080/keyword/delete/`;
+        console.log(requestOptions);
         fetch(url, requestOptions)
           .then((response) => response.json())
           .then((data) => {
             if (data.error) {
               console.log(data.error);
             } else {
-              setKeywords((keywords) => keywords.filter((keyword) => keyword.ID !== id));
-              console.log(`${data.Word} Deleted`);
-              // navigate("/keywords");
+              setKeywords((keywords) => keywords.filter((keyword) => keyword.KeywordId !== data.data));
             }
           })
           .catch(err => {
@@ -119,26 +123,29 @@ const App = () => {
     // const request = await axios.post(`http://localhost:8080/keyword/create/${word}`);
     // const result = await axios.get(`http://localhost:8080/keyword/create/${word}`);
     // updateImage(result.data);
-    const requestBody = word;
+    const requestBody = keyword;
+    requestBody.word = word;
     
     let headers = new Headers();
-    // headers.append("Content-Type", "application/json");
+    headers.append("Content-Type", "application/json");
         // headers.append("Authorization", "Bearer " + jwtToken)
-        const requestOptions = {
-          method: "POST",
-          headers: headers,
-          body: JSON.stringify(requestBody)
-        };
+    const requestOptions = {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(requestBody)
+    };
 
         const url = `http://localhost:8080/keyword/create/${word}`;
         fetch(url, requestOptions)
           .then((response) => response.json())
           .then((data) => {
-            console.log(data);
             if (data.error) {
               console.log(data.error);
             } else {
-              setKeywords(data);
+              setKeywords([...keywords,
+                data.data,
+              ]);
+              navigate("/keywords")
             }
           })
     updateLoading(false);
@@ -168,8 +175,7 @@ const App = () => {
               onChange={(e) => updateWord(e.target.value)}
               width={"350px"}
             ></Input>
-            <button type="submit">Send</button>
-            <Button colorScheme={"yellow"}>
+            <Button type="submit" colorScheme={"yellow"}>
               Generate
             </Button>
           </form>

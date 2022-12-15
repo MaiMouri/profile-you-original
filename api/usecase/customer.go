@@ -72,10 +72,6 @@ func (ku *keywordUseCase) UpdateKeyword(id string, word string, description stri
 		return err
 	}
 
-	// keyword.Word = word
-	// keyword.Description = description
-	// err = ku.keywordRepository.Update(*keyword)
-
 	keywordId := current_keyword.GetKeywordId()
 	update_keyword, err := keyword.New(keywordId, word, description, imgeUrl)
 	if err != nil {

@@ -122,14 +122,7 @@ func (ku *keywordController) Index(c *gin.Context) {
 }
 
 func (ku *keywordController) DetailKeyword(c *gin.Context) {
-	// id, err := strconv.Atoi(c.Param("id"))
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
 
-	// 20221213 - changed to id type from int to string
-	// Getkeyword method's params also changed to string
 	id := c.Param("id")
 	keyword, err := ku.keywordUseCase.GetKeyword(id)
 	if err != nil {
@@ -144,39 +137,37 @@ func (ku *keywordController) DetailKeyword(c *gin.Context) {
 		KeywordId   string
 		Word        string
 		Description string
+		ImageUrl    string
 	}
 
-	data := ResultDataField{KeywordId: string(keyword.GetKeywordId()), Word: string(keyword.GetWord()), Description: string(keyword.GetDescription())}
+	data := ResultDataField{KeywordId: string(keyword.GetKeywordId()), Word: string(keyword.GetWord()), Description: string(keyword.GetDescription()), ImageUrl: string(keyword.GetImageUrl())}
 	c.IndentedJSON(http.StatusOK, data)
 }
 
 func (ku *keywordController) CreateKeyword(c *gin.Context) {
 	// 221214 form bindingができなくて一旦Paramから抜き取る変な感じ
-	word := c.Param("word")
-	fmt.Printf("Paramで受け取れるか%v\n", word)
-
 	// 20221213 - Validation for create
 	type RequestDataField struct {
-		Word string `form:"word" binding:"required"`
-		// Description string `form:"description"`
-		// ImageUrl    string `form:"image_url"`
+		Word        string `json:"Word" binding:"required"`
+		Description string `json:"Description"`
+		ImageUrl    string `json:"ImageUrl"`
+		KeywordId   string `json:"KeywordId"`
 	}
 
-	var form RequestDataField
-	fmt.Printf("&jsonには何が入っているのか%v\n", &form)
-	if err := c.ShouldBind(&form); err != nil {
+	var json RequestDataField
+
+	if err := c.ShouldBindJSON(&json); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		apiErr := errors.NewBadRequestError("Bad request on binding json")
 		c.IndentedJSON(apiErr.Status, apiErr)
 		return
 	}
 
-	word = form.Word
+	word := json.Word
 	description := ""
 	imageUrl := ""
 	fmt.Printf("Receive a post: %s\n", word)
 
-	// keyword := model.Keyword{Word: word}
 	err := ku.keywordUseCase.CreateKeyword(word, description, imageUrl)
 	if err != nil {
 		fmt.Println(err)
@@ -185,20 +176,20 @@ func (ku *keywordController) CreateKeyword(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(301, "/")
+	c.IndentedJSON(http.StatusOK, gin.H{"data": json})
 }
 
 func (ku *keywordController) UpdateKeyword(c *gin.Context) {
 	type RequestDataField struct {
-		ID          string `form:"id" binding:"required"`
-		Word        string `form:"word" binding:"required"`
-		Description string `form:"description"`
-		ImageUrl    string `form:"image_url"`
+		ID          string `json:"id" binding:"required"`
+		Word        string `json:"word" binding:"required"`
+		Description string `json:"description"`
+		ImageUrl    string `json:"image_url"`
 	}
 
-	var form RequestDataField
+	var json RequestDataField
 
-	if err := c.ShouldBind(&form); err != nil {
+	if err := c.ShouldBindJSON(&json); err != nil {
 		fmt.Println(err)
 		apiErr := errors.NewBadRequestError("Bad request")
 		c.IndentedJSON(apiErr.Status, apiErr)
@@ -206,10 +197,10 @@ func (ku *keywordController) UpdateKeyword(c *gin.Context) {
 	}
 
 	// id,  := strconv.Atoi(c.Param("id"))
-	id := form.ID
-	word := form.Word
-	description := form.Description
-	imageUrl := form.ImageUrl
+	id := json.ID
+	word := json.Word
+	description := json.Description
+	imageUrl := json.ImageUrl
 
 	fmt.Printf("Updating a keyword id: %v", id)
 	keyword, err := ku.keywordUseCase.GetKeyword(id)
@@ -219,9 +210,6 @@ func (ku *keywordController) UpdateKeyword(c *gin.Context) {
 		c.IndentedJSON(apiErr.Status, apiErr)
 		return
 	}
-
-	// word := c.Param("word")
-	// description := c.Param("description")
 
 	err = ku.keywordUseCase.UpdateKeyword(id, word, description, imageUrl)
 	if err != nil {
@@ -235,37 +223,29 @@ func (ku *keywordController) UpdateKeyword(c *gin.Context) {
 }
 
 func (ku *keywordController) DeleteKeyword(c *gin.Context) {
-	// 20221213 Deleted prior to implement immutable model
-	// id, err := strconv.Atoi(c.Param("id"))
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	apiErr := errors.NewBadRequestError("Bad request")
-	// 	c.IndentedJSON(apiErr.Status, apiErr)
-	// }
-
 	type RequestDataField struct {
-		ID string `form:"id" binding:"required"`
+		KeywordId string `json:"keywordId" binding:"required"`
 	}
-	var form RequestDataField
+	var json RequestDataField
 
-	id := form.ID
+	if err := c.ShouldBindJSON(&json); err != nil {
+		fmt.Println(err)
+		apiErr := errors.NewBadRequestError("Bad Request")
+		c.IndentedJSON(apiErr.Status, apiErr)
+		return
+	}
 
-	// keyword, err := ku.keywordUseCase.GetKeyword(id)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	apiErr := errors.NotFoundError("Not found")
-	// 	c.IndentedJSON(apiErr.Status, apiErr)
-	// }
+	keyword_id := json.KeywordId
 
-	err := ku.keywordUseCase.DeleteKeyword(id)
+	fmt.Printf("Delete mode%v\n", keyword_id)
+	err := ku.keywordUseCase.DeleteKeyword(keyword_id)
 	if err != nil {
 		fmt.Println(err)
 		apiErr := errors.InternalSeverError("Server Error")
 		c.IndentedJSON(apiErr.Status, apiErr)
 		return
 	}
+	fmt.Printf("Delete json %v\n", json)
+	c.IndentedJSON(http.StatusOK, gin.H{"data": keyword_id})
 
-	c.IndentedJSON(http.StatusOK, gin.H{"message": "Deleted"})
-
-	// c.Redirect(302, "/")
 }
