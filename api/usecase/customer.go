@@ -66,14 +66,14 @@ func (ku *keywordUseCase) CreateKeyword(word string, description string, imageUr
 	return nil
 }
 
-func (ku *keywordUseCase) UpdateKeyword(id string, word string, description string, imgeUrl string) error {
+func (ku *keywordUseCase) UpdateKeyword(id string, word string, description string, imageUrl string) error {
 	current_keyword, err := ku.keywordRepository.GetKeyword(id)
 	if err != nil {
 		return err
 	}
 
 	keywordId := current_keyword.GetKeywordId()
-	update_keyword, err := keyword.New(keywordId, word, description, imgeUrl)
+	update_keyword, err := keyword.New(keywordId, word, description, imageUrl)
 	if err != nil {
 		return err
 	}

@@ -32,7 +32,6 @@ func (kp *keywordPersistance) GetKeyword(id string) (result *keyword.Keyword, er
 	}
 
 	return result_keyword, nil
-
 }
 
 func (kp *keywordPersistance) GetKeywords() (result []*keyword.Keyword, err error) {
@@ -66,7 +65,8 @@ func (kp *keywordPersistance) Create(k *keyword.Keyword) error {
 func (kp *keywordPersistance) Update(k *keyword.Keyword) error {
 
 	converted_keyword := dto.ConvertKeyword(k)
-	if result := kp.Conn.Save(converted_keyword); result.Error != nil {
+	if result := kp.Conn.Where("keyword_id = ?", converted_keyword.KeywordId).
+		Updates(converted_keyword); result.Error != nil {
 		err := result.Error
 		return err
 	}

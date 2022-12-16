@@ -51,42 +51,30 @@ func (ku *keywordController) GetAllKeywordsGin(c *gin.Context) {
 }
 
 func (ku *keywordController) GetKeyword(c *gin.Context) {
-	// 221213 - immutable model
-	// Params are changed to string for encrypting
-	// id, err := strconv.Atoi(c.Param("id"))
-	// if err != nil {
-	// 	apiErr := errors.NewBadRequestError("Bad Request")
-	// 	c.IndentedJSON(apiErr.Status, apiErr)
-	// 	return
-	// }
-	// id := c.Param("id")
-	// keyword, err := ku.keywordUseCase.GetKeyword(id)
-
-	// if err != nil {
-	// 	fmt.Printf("Error %v", err)
-	// 	apiErr := errors.NotFoundError("Not found")
-	// 	c.IndentedJSON(apiErr.Status, apiErr)
-	// 	return
-	// }
-
-	// c.IndentedJSON(http.StatusOK, keyword)
 	id := c.Param("id")
+	fmt.Printf("param id: %v\n", id)
 	keyword, err := ku.keywordUseCase.GetKeyword(id)
+	fmt.Printf("keyword id: %v\n", keyword)
 	if err != nil {
 		fmt.Println(err)
 		apiErr := errors.NotFoundError("Tried to find the record but Not found")
 		c.IndentedJSON(apiErr.Status, apiErr)
 		return
 	}
-	// c.IndentedJSON(http.StatusOK, keyword)
 
 	type ResultDataField struct {
 		KeywordId   string
 		Word        string
 		Description string
+		ImageUrl    string
 	}
 
-	data := ResultDataField{KeywordId: string(keyword.GetKeywordId()), Word: string(keyword.GetWord()), Description: string(keyword.GetDescription())}
+	data := ResultDataField{
+		KeywordId:   string(keyword.GetKeywordId()),
+		Word:        string(keyword.GetWord()),
+		Description: string(keyword.GetDescription()),
+		ImageUrl:    string(keyword.GetImageUrl()),
+	}
 	c.IndentedJSON(http.StatusOK, data)
 
 }
@@ -131,7 +119,6 @@ func (ku *keywordController) DetailKeyword(c *gin.Context) {
 		c.IndentedJSON(apiErr.Status, apiErr)
 		return
 	}
-	// c.IndentedJSON(http.StatusOK, keyword)
 
 	type ResultDataField struct {
 		KeywordId   string
@@ -145,8 +132,6 @@ func (ku *keywordController) DetailKeyword(c *gin.Context) {
 }
 
 func (ku *keywordController) CreateKeyword(c *gin.Context) {
-	// 221214 form bindingができなくて一旦Paramから抜き取る変な感じ
-	// 20221213 - Validation for create
 	type RequestDataField struct {
 		Word        string `json:"Word" binding:"required"`
 		Description string `json:"Description"`
@@ -181,10 +166,10 @@ func (ku *keywordController) CreateKeyword(c *gin.Context) {
 
 func (ku *keywordController) UpdateKeyword(c *gin.Context) {
 	type RequestDataField struct {
-		ID          string `json:"id" binding:"required"`
-		Word        string `json:"word" binding:"required"`
-		Description string `json:"description"`
-		ImageUrl    string `json:"image_url"`
+		KeywordId   string `json:"KeywordId" binding:"required"`
+		Word        string `json:"Word" binding:"required"`
+		Description string `json:"Description"`
+		ImageUrl    string `json:"ImageUrl"`
 	}
 
 	var json RequestDataField
@@ -196,13 +181,13 @@ func (ku *keywordController) UpdateKeyword(c *gin.Context) {
 		return
 	}
 
-	// id,  := strconv.Atoi(c.Param("id"))
-	id := json.ID
+	id := json.KeywordId
 	word := json.Word
 	description := json.Description
 	imageUrl := json.ImageUrl
 
 	fmt.Printf("Updating a keyword id: %v", id)
+	fmt.Printf("Updating a description: %v", description)
 	keyword, err := ku.keywordUseCase.GetKeyword(id)
 	if err != nil {
 		fmt.Println(err)

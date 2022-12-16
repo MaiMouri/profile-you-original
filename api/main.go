@@ -84,7 +84,7 @@ func main() {
 	r.GET("/keywords/:id", keywordController.GetKeyword)
 	// create a new keyword
 	r.POST("/keyword/create/:word", keywordController.CreateKeyword)
-	r.POST("/keyword/update/:id", keywordController.UpdateKeyword)
+	r.POST("/keyword/update/", keywordController.UpdateKeyword)
 	r.POST("/keyword/delete/", keywordController.DeleteKeyword)
 	r.Run(":8080")
 

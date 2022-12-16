@@ -9,7 +9,7 @@ const Keywords = (props) => {
 
   return (
     <div>
-      <h2>📘  Keywords History</h2>
+      <p className="h3">📘  Keywords History</p>
       <hr />
       <table className="table table-striped table-hover">
         <thead>

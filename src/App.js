@@ -155,7 +155,7 @@ const App = () => {
   return (
     <ChakraProvider>
       <Container>
-        <Heading>Profile You🚀</Heading>
+        <Heading className="h1">Profile You🚀</Heading>
         <Text marginBottom={"10px"}>
           This application examines the trend of the given word in Twitter to generate images
           using the Dall・E API. More information can be found here{" "}
@@ -191,6 +191,7 @@ const App = () => {
         ) : null}
 
         <pre>{JSON.stringify(word)}</pre>
+
         {/* Outletは共通NavBarとかを望むとき */}
         {/* <Outlet context={{keywords, confirmDelete}}/> */}
         {/* Routeの一部にしない下記の記述は居座るから🆖 */}

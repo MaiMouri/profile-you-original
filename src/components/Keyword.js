@@ -1,14 +1,22 @@
+import userEvent from "@testing-library/user-event";
 import React from "react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import Input from "./form/Input";
 
 const Keyword = (props) => {
-    const [keyword, setKeyword] = useState({});
-    const [error, setError] = useState(null);
-    const [errors, setErrors] = useState([]);
-    let { id } = useParams();
-
+  const navigate = useNavigate();
+  const [keyword, setKeyword] = useState({
+    Id: 0,
+    Word: "",
+    Description: "",
+    ImageUrl: "",
+    KeywordId: ""
+  });
+  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState([]);
+  let { id } = useParams();
+  
     useEffect(() => {
         const headers = new Headers();
         headers.append("Content-Type", "application/json");
@@ -36,13 +44,40 @@ const Keyword = (props) => {
         let name = event.target.name;
         setKeyword({
           ...keyword,
-          [name]: value,
+          [name]: value
         });
+        console.log(keyword);
       };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-    }
+        
+        const requestBody = keyword;
+    
+        // passed validation, so save changes
+        let headers = new Headers();
+        headers.append("Content-Type", "application/json");
+    
+        const requestOptions = {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(requestBody)
+        };
+
+        fetch(`/keyword/update/`, requestOptions)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            console.log(data.error);
+          } else {
+            console.log("UPDATED");
+            // navigate("/keywords");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      }
 
     return(
         <div>
@@ -54,9 +89,9 @@ const Keyword = (props) => {
             title={"Word"}
             className={"form-control"}
             type={"text"}
-            name={"word"}
+            name={"Word"}
             value={keyword.Word}
-            onChange={handleChange("keyword")}
+            onChange={handleChange("Keyword")}
             errorDiv={hasError("word") ? "text-danger" : "d-none"}
             errorMsg={"Please enter a keyword"}
           />
@@ -64,9 +99,9 @@ const Keyword = (props) => {
             title={"Description"}
             className={"form-control"}
             type={"text"}
-            name={"description"}
+            name={"Description"}
             value={keyword.Description}
-            onChange={handleChange("description")}
+            onChange={handleChange("Description")}
             // errorDiv={hasError("description") ? "text-danger" : "d-none"}
             // errorMsg={"Please enter a keyword"}
           />
@@ -74,13 +109,15 @@ const Keyword = (props) => {
             title={"ImageUrl"}
             className={"form-control"}
             type={"text"}
-            name={"image_url"}
+            name={"ImageUrl"}
             value={keyword.ImageUrl}
-            onChange={handleChange("image_url")}
+            onChange={handleChange("ImageUrl")}
             // errorDiv={hasError("description") ? "text-danger" : "d-none"}
             // errorMsg={"Please enter a keyword"}
           />
-<button className="btn btn-primary">Save</button>
+          <hr />
+          <hr />
+          <button className="btn btn-primary">Save</button>
 
             {keyword.imageUrl !== "" &&
                 <div className="mb-3">
@@ -88,8 +125,8 @@ const Keyword = (props) => {
                 </div>
             }
 
-            {/* <p>{movie.description}</p> */}
             </form>
+            <Link to={`/keywords`}><button className="btn btn-light">Home</button></Link>
         </div>
     )
 }
