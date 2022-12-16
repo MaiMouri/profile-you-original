@@ -8,6 +8,7 @@ import (
 	"profileyou/api/utils/errors"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/golang-jwt/jwt/v4"
 	// "gorm.io/driver/sqlite"
 )
 
@@ -209,7 +210,7 @@ func (ku *keywordController) UpdateKeyword(c *gin.Context) {
 
 func (ku *keywordController) DeleteKeyword(c *gin.Context) {
 	type RequestDataField struct {
-		KeywordId string `json:"keywordId" binding:"required"`
+		KeywordId string `json:"KeywordId" binding:"required"`
 	}
 	var json RequestDataField
 
@@ -234,3 +235,56 @@ func (ku *keywordController) DeleteKeyword(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"data": keyword_id})
 
 }
+
+// func (ku *keywordController) Authenticate(c *gin.Context) {
+// 	// read json payload
+// 	// var requestPayload struct {
+// 	// 	Email    string `json:"email"`
+// 	// 	Password string `json:"password"`
+// 	// }
+
+// 	// err := readJSON(w, r, &requestPayload)
+// 	// if err != nil {
+// 	// 	ku.errorJSON(w, err, http.StatusBadRequest)
+// 	// 	return
+// 	// }
+
+// 	// // validate user against database
+// 	// user, err := ku.DB.GetUserByEmail(requestPayload.Email)
+// 	// if err != nil {
+// 	// 	ku.errorJSON(w, errors.New("invalid credentials"), http.StatusBadRequest)
+// 	// 	return
+// 	// }
+
+// 	// // check password
+// 	// valid, err := user.PasswordMatches(requestPayload.Password)
+// 	// if err != nil || !valid {
+// 	// 	ku.errorJSON(w, errors.New("invalid credentials"), http.StatusBadRequest)
+// 	// 	return
+// 	// }
+
+// 	// create a jwt user
+// 	u := auth.JwtUser{
+// 		ID:        1,
+// 		FirstName: "Admin",
+// 		LastName:  "User",
+// 	}
+// 	// u := jwtUser{
+// 	// 	ID:        user.ID,
+// 	// 	FirstName: user.FirstName,
+// 	// 	LastName:  user.LastName,
+// 	// }
+
+// 	// // generate tokens
+// 	tokens, err := ku.auth.GenerateTokenPair(&u)
+// 	if err != nil {
+// 		apiErr := errors.NewBadRequestError("Bad request")
+// 		c.IndentedJSON(apiErr.Status, apiErr)
+// 		return
+// 	}
+// 	log.Println(tokens.Token)
+// 	// refreshCookie := ku.auth.GetRefreshCookie(tokens.RefreshToken)
+// 	// http.SetCookie(w, refreshCookie)
+
+// 	c.IndentedJSON(http.StatusOK, gin.H{"data": tokens})
+// }

@@ -21,6 +21,8 @@ import Keywords from "./components/Keywords";
 import React from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Keyword from "./components/Keyword";
+import Login from "./components/Login";
+
 
 
 const App = () => {
@@ -30,13 +32,16 @@ const App = () => {
   const [loading, updateLoading] = useState();
   const [keywords, setKeywords] = useState([]);
   const [keyword, setKeyword] = useState({
-    id: 0,
-    word: "",
-    description: "",
-    imageUrl: "",
-    keywordId: ""
+    Id: 0,
+    Word: "",
+    Description: "",
+    ImageUrl: "",
+    KeywordId: ""
   });
 
+  const [jwtToken, setJwtToken] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertClassName, setAlertClassName] = useState("d-none");
 
   // START FETCHING
   useEffect(() => {
@@ -85,7 +90,7 @@ const App = () => {
         // headers.append("Authorization", "Bearer " + jwtToken)
 
         const requestBody = keyword;
-        requestBody.keywordId = id;
+        requestBody.KeywordId = id;
 
         const requestOptions = {
           method: "POST",
@@ -198,6 +203,13 @@ const App = () => {
         {/* <Keywords keywords={keywords} confirmDelete={confirmDelete}/> */}
         {/* このルーティングめちゃくちゃ苦労した　何だこれ */}
         <Routes>
+          <Route path={`/login`} element={<Login />} context={{
+              jwtToken,
+              setJwtToken,
+              setAlertClassName,
+              setAlertMessage,
+              // toggleRefresh,
+            }}/>
           <Route path={`/keywords`} element={<Keywords keywords={keywords} confirmDelete={confirmDelete}/>} />
           <Route path={`/keywords/:id`} element={<Keyword />} />
         </Routes>

@@ -7,6 +7,7 @@ import (
 	sqlite "profileyou/api/config/database"
 	controllers "profileyou/api/controllers"
 	"profileyou/api/infrastructure/persistance"
+	"profileyou/api/service"
 	"profileyou/api/usecase"
 
 	// "profileyou/internal/repository"
@@ -17,6 +18,11 @@ import (
 )
 
 func main() {
+	// var app Application
+	var loginService service.LoginService = service.StaticLoginService()
+	var jwtService service.JWTService = service.JWTAuthService()
+	var loginController controllers.LoginController = controllers.LoginHandler(loginService, jwtService)
+
 	// connect to the database
 	db := sqlite.New()
 
@@ -86,6 +92,7 @@ func main() {
 	r.POST("/keyword/create/:word", keywordController.CreateKeyword)
 	r.POST("/keyword/update/", keywordController.UpdateKeyword)
 	r.POST("/keyword/delete/", keywordController.DeleteKeyword)
+	r.POST("/login", loginController.Authenticate)
 	r.Run(":8080")
 
 	// out, err := exec.Command("/bin/bash", "python3 api/api.py").Output()
