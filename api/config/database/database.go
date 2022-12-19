@@ -13,6 +13,13 @@ type Keyword struct {
 	ImageUrl    string
 }
 
+type User struct {
+	gorm.Model
+	UserID   int
+	Email    string
+	Password string
+}
+
 func New() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("mvc.db"), &gorm.Config{})
 	if err != nil {

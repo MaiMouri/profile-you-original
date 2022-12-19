@@ -5,9 +5,12 @@ import (
 	"profileyou/api/domain/model/keyword"
 	"profileyou/api/domain/repository"
 	"profileyou/api/infrastructure/dto"
+	"time"
 
 	"gorm.io/gorm"
 )
+
+const dbTimeout = time.Second * 3
 
 type keywordPersistance struct {
 	Conn *gorm.DB

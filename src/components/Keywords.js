@@ -23,7 +23,6 @@ const Keywords = (props) => {
           {props.keywords.map((k, index) => (
             <tr key={index}>
               <td><Link to={`/keywords/${k.KeywordId}`}>{k.Word}</Link></td>
-              {/* <td><Route path={`/keywords/${k.ID}`}><Keyword /><Route/></td> */}
 
 
               <td>{k.Description}</td>

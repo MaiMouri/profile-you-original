@@ -147,9 +147,12 @@ const App = () => {
             if (data.error) {
               console.log(data.error);
             } else {
+              console.log(data.data)
               setKeywords([...keywords,
                 data.data,
               ]);
+              // tentative first aid
+              window.location.reload();
               navigate("/keywords")
             }
           })

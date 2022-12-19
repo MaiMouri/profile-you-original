@@ -71,7 +71,7 @@ const Keyword = (props) => {
             console.log(data.error);
           } else {
             console.log("UPDATED");
-            // navigate("/keywords");
+            navigate("/keywords");
           }
         })
         .catch((err) => {
