@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"profileyou/api/config"
 )
 
@@ -28,12 +29,12 @@ type RequestBody struct {
 	Size   string `json:"size"`
 }
 
-func (d Data) String() string {
-	return fmt.Sprintf(d.Url)
-}
+// func (d Data) String() string {
+// 	return fmt.Sprintf(d.Url)
+// }
 
 func ImageGenerator(keyword string) []Data {
-	token := config.OPEN_API_KEY
+	token := config.Config.ApiKey
 
 	requestBody := &RequestBody{
 		Prompt: keyword,
@@ -57,6 +58,9 @@ func ImageGenerator(keyword string) []Data {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", bearer)
 
+	dump, _ := httputil.DumpRequestOut(req, true)
+	fmt.Printf("%s", dump)
+
 	client := new(http.Client)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -73,8 +77,8 @@ func ImageGenerator(keyword string) []Data {
 
 	b := bytes
 	var d DallEAPIResponse
-	var t Data
-	if err := json.Unmarshal(b, &t); err != nil {
+	// var t Data
+	if err := json.Unmarshal(b, &d); err != nil {
 		panic(err)
 	}
 	fmt.Println(&d)

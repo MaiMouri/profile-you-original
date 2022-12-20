@@ -29,8 +29,8 @@ const Keywords = (props) => {
               <td>
                 {k.ImageUrl !== "" &&
                   <div className="mb-3">
-                    {/* <img src={`${k.ImageUrl}`} alt="generated-img" /> */}
-                    <img src={`https://res.cloudinary.com/dokzsbu2v/image/upload/v1670479204/development/images_xa8j85.png`} alt="generated-img" />
+                    <img src={`${k.ImageUrl}`} alt="generated-img" />
+                    {/* <img src={`https://res.cloudinary.com/dokzsbu2v/image/upload/v1670479204/development/images_xa8j85.png`} alt="generated-img" /> */}
                   </div>
                 }
 
