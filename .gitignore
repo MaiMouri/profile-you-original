@@ -25,3 +25,4 @@ yarn-error.log*
 
 config.ini
 api/config/config.ini
+*.ini

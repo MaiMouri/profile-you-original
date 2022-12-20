@@ -93,6 +93,7 @@ func main() {
 	r.POST("/keyword/update/", keywordController.UpdateKeyword)
 	r.POST("/keyword/delete/", keywordController.DeleteKeyword)
 	r.POST("/login", loginController.Authenticate)
+	r.POST("/register", loginController.Signup)
 	r.Run(":8080")
 
 	// out, err := exec.Command("/bin/bash", "python3 api/api.py").Output()

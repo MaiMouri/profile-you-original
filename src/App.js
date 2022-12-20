@@ -22,11 +22,12 @@ import React from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Keyword from "./components/Keyword";
 import Login from "./components/Login";
-import { useSelector } from "react-redux";
+// import { useSelector } from "react-redux";
 
 
 
 const App = () => {
+  // const lists = useSelector((state) => state.lists);
   const navigate = useNavigate();
   const [image, updateImage] = useState();
   const [word, updateWord] = useState();
@@ -43,6 +44,24 @@ const App = () => {
   const [jwtToken, setJwtToken] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [alertClassName, setAlertClassName] = useState("d-none");
+
+  const logOut = () => {
+    const requestOptions = {
+      method: "GET",
+      credentials: "include",
+    }
+
+    fetch(`/logout`, requestOptions)
+    .catch(error => {
+      console.log("error logging out", error);
+    })
+    .finally(() => {
+      setJwtToken("");
+      // toggleRefresh(false);
+    })
+
+    navigate("/login");
+  }
 
   // START FETCHING
   useEffect(() => {
@@ -164,6 +183,18 @@ const App = () => {
   return (
     <ChakraProvider>
       <Container>
+        <div className="col text-end">
+          {jwtToken === "" ? (
+            <Link to="/login">
+              <span className="badge bg-success">Login</span>
+            </Link>
+          ) : (
+            <a href="#!" onClick={logOut}>
+              <span className="badge bg-danger">Logout</span>
+            </a>
+          )}
+          <hr className="mb-3"></hr>
+        </div>
         <Heading className="h1">Profile You🚀</Heading>
         <Text marginBottom={"10px"}>
           This application examines the trend of the given word in Twitter to generate images

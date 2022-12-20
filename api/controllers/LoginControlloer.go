@@ -13,11 +13,13 @@ import (
 type LoginController interface {
 	Authenticate(ctx *gin.Context)
 	Login(ctx *gin.Context) string
+	Signup(ctx *gin.Context)
 }
 
 type loginController struct {
-	loginService service.LoginService
-	jWtService   service.JWTService
+	loginService  service.LoginService
+	signupService service.SignupService
+	jWtService    service.JWTService
 }
 
 func (controller *loginController) Authenticate(ctx *gin.Context) {
@@ -56,4 +58,13 @@ func (controller *loginController) Login(ctx *gin.Context) string {
 
 	}
 	return ""
+}
+
+func (controller *loginController) Signup(ctx *gin.Context) {
+	email := ctx.PostForm("name")
+	password := ctx.PostForm("password")
+	str_out := controller.signupService.Register_proc(email, password)
+	ctx.JSON(200, gin.H{
+		"token": str_out,
+	})
 }
