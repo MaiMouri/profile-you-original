@@ -1,7 +1,9 @@
 package usecase
 
 import (
+	"fmt"
 	"profileyou/api/domain/model/keyword"
+	"profileyou/api/domain/model/user"
 	"profileyou/api/domain/repository"
 )
 
@@ -22,6 +24,7 @@ type KeywordUseCase interface {
 	CreateKeyword(word string, description string, imgaeUrl string) error
 	UpdateKeyword(id string, word string, description string, imageUrl string) error
 	DeleteKeyword(id string) error
+	GetUserForAuth(email string) (result *user.User, err error)
 }
 
 type keywordUseCase struct {
@@ -97,4 +100,14 @@ func (ku *keywordUseCase) DeleteKeyword(id string) error {
 	}
 
 	return nil
+}
+
+func (ku *keywordUseCase) GetUserForAuth(email string) (result *user.User, err error) {
+	fmt.Printf("User email %v has requested to log in!", email)
+	current_user, err := ku.keywordRepository.GetUserByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	return current_user, nil
 }

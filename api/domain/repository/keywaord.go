@@ -2,6 +2,7 @@ package repository
 
 import (
 	"profileyou/api/domain/model/keyword"
+	"profileyou/api/domain/model/user"
 )
 
 type KeywordRepository interface {
@@ -10,4 +11,5 @@ type KeywordRepository interface {
 	Create(k *keyword.Keyword) error
 	Update(k *keyword.Keyword) error
 	Delete(k *keyword.Keyword) error
+	GetUserByEmail(email string) (result *user.User, err error)
 }

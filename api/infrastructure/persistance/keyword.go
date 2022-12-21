@@ -3,6 +3,7 @@ package persistance
 import (
 	"fmt"
 	"profileyou/api/domain/model/keyword"
+	"profileyou/api/domain/model/user"
 	"profileyou/api/domain/repository"
 	"profileyou/api/infrastructure/dto"
 	"time"
@@ -84,4 +85,15 @@ func (kp *keywordPersistance) Delete(k *keyword.Keyword) error {
 		return err
 	}
 	return nil
+}
+
+func (kp *keywordPersistance) GetUserByEmail(email string) (result *user.User, err error) {
+
+	var user user.User
+	if result := kp.Conn.Where("email = ?", email).First(&user); result.Error != nil {
+		err := result.Error
+		return nil, err
+	}
+
+	return &user, nil
 }

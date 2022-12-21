@@ -1,9 +1,9 @@
 package persistance
 
 import (
+	"fmt"
 	"profileyou/api/domain/model/user"
 	"profileyou/api/domain/repository"
-	"profileyou/api/infrastructure/dto"
 
 	"gorm.io/gorm"
 )
@@ -20,50 +20,28 @@ func NewUserPersistance(conn *gorm.DB) repository.UserRepository {
 
 // GetUserByEmail returns one use, by email.
 func (up *userPersistance) GetUserByEmail(email string) (result *user.User, err error) {
-	// ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
-	// defer cancel()
-
-	// query := `select id, email, first_name, last_name, password,
-	// 		created_at, updated_at from users where email = $1`
-
-	var user dto.User
+	fmt.Printf("GET USER BY EMAIL %v -----SEARCHING....\n", email)
+	var user user.User
 	if result := up.Conn.Where("email = ?", email).First(&user); result.Error != nil {
+		fmt.Println("NOT FOUND THE USER!")
 		err := result.Error
 		return nil, err
 	}
-	result_user, err := dto.AdaptUser(&user)
-	if err != nil {
-		return nil, err
-	}
-	// row := kp.Conn.QueryRowContext(ctx, query, email)
 
-	// err := row.Scan(
-	// 	&user.ID,
-	// 	&user.Email,
-	// 	&user.FirstName,
-	// 	&user.LastName,
-	// 	&user.Password,
-	// 	&user.CreatedAt,
-	// 	&user.UpdatedAt,
-	// )
-
-	if err != nil {
-		return nil, err
-	}
-
-	return result_user, nil
+	fmt.Printf("....FOUND THE USER! %v\n", user)
+	return &user, nil
 }
 
 // GetUserByID returns one use, by ID.
-func (up *userPersistance) GetUserByID(userId int) (*user.User, error) {
+func (up *userPersistance) GetUserByID(id int) (result *user.User, err error) {
 	// ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	// defer cancel()
 
 	// query := `select id, email, first_name, last_name, password,
 	// 		created_at, updated_at from users where id = $1`
 
-	var user dto.User
-	if result := up.Conn.Where("user_id = ?", userId).First(&user); result.Error != nil {
+	var user user.User
+	if result := up.Conn.Where("id = ?", id).First(&user); result.Error != nil {
 		err := result.Error
 		return nil, err
 	}
@@ -78,14 +56,23 @@ func (up *userPersistance) GetUserByID(userId int) (*user.User, error) {
 	// 	&user.CreatedAt,
 	// 	&user.UpdatedAt,
 	// )
-	result_user, err := dto.AdaptUser(&user)
-	if err != nil {
-		return nil, err
-	}
+	// result_user, err := dto.AdaptUser(&user)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	if err != nil {
-		return nil, err
-	}
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return result_user, nil
+	return result, nil
+}
+
+func (up *userPersistance) Create(u user.User) error {
+
+	if result := up.Conn.Create(&u); result.Error != nil {
+		err := result.Error
+		return err
+	}
+	return nil
 }

@@ -27,3 +27,5 @@ func init() {
 		//構造体のApiKeyフィールドにOPEN_API_KEYセクションのapi_keyの値(APIキー)を入れる
 	}
 }
+
+// 1222 削除予定

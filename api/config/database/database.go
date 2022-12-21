@@ -15,7 +15,6 @@ type Keyword struct {
 
 type User struct {
 	gorm.Model
-	UserID   int
 	Email    string
 	Password string
 }
@@ -30,7 +29,7 @@ func New() *gorm.DB {
 	// db.Create(Keyword{Word: "クリスマス", Description: "", ImageUrl: "test", KeywordId: "1"})
 	// db.Create(Keyword{Word: "お正月", Description: "", ImageUrl: "test", KeywordId: "2"})
 
-	db.AutoMigrate(&Keyword{})
+	db.AutoMigrate(&Keyword{}, &User{})
 
 	return db
 }

@@ -6,7 +6,7 @@ const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const { setJwtToken } = useOutletContext();
+    const [ jwtToken, setJwtToken ] = useState("");
     // const { setAlertClassName } = useOutletContext();
     // const { setAlertMessage } = useOutletContext();
     // const { toggleRefresh } = useOutletContext();
@@ -38,11 +38,11 @@ const Login = () => {
                     // setAlertClassName("alert-danger");
                     // setAlertMessage(data.message);
                 } else {
-                    // setJwtToken(data.access_token);
+                    setJwtToken(data.token);
                     // setAlertClassName("d-none");
                     // setAlertMessage("");
                     // toggleRefresh(true);
-                    navigate("/keywords");
+                    navigate("/");
                 }
             })
             .catch(error => {

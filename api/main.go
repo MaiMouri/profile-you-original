@@ -1,27 +1,29 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"os/exec"
 	"time"
 
 	sqlite "profileyou/api/config/database"
 	controllers "profileyou/api/controllers"
 	"profileyou/api/infrastructure/persistance"
-	"profileyou/api/service"
 	"profileyou/api/usecase"
 
 	// "profileyou/internal/repository"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	// "gorm.io/driver/sqlite"
 )
 
 func main() {
 	// var app Application
-	var loginService service.LoginService = service.StaticLoginService()
-	var jwtService service.JWTService = service.JWTAuthService()
-	var loginController controllers.LoginController = controllers.LoginHandler(loginService, jwtService)
+	// var loginService service.LoginService = service.StaticLoginService()
+	// var jwtService service.JWTService = service.JWTAuthService()
+	// var userController controllers.UserController = controllers.UserHandler(loginService, jwtService)
 
 	// connect to the database
 	db := sqlite.New()
@@ -32,10 +34,16 @@ func main() {
 	}
 	defer connect.Close()
 
+	err = godotenv.Load(fmt.Sprintf("../%s.env", os.Getenv("GO_ENV")))
+
 	// DI
 	keywordRepository := persistance.NewKeywordPersistance(db)
 	keywordUseCase := usecase.NewKeywordUseCase(keywordRepository)
 	keywordController := controllers.NewKeywordController(keywordUseCase)
+
+	userRepository := persistance.NewUserPersistance(db)
+	userUseCase := usecase.NewUserUseCase(userRepository)
+	userController := controllers.NewUserController(userUseCase)
 
 	r := gin.Default()
 	r.LoadHTMLGlob("api/view/*html")
@@ -92,8 +100,10 @@ func main() {
 	r.POST("/keyword/create/:word", keywordController.CreateKeyword)
 	r.POST("/keyword/update/", keywordController.UpdateKeyword)
 	r.POST("/keyword/delete/", keywordController.DeleteKeyword)
-	r.POST("/login", loginController.Authenticate)
-	r.POST("/register", loginController.Signup)
+	// r.POST("/login", userController.Authenticate)
+	r.GET("/login", userController.Authenticate)
+	// r.POST("/refresh", userController.RefreshToken)
+	r.POST("/register", userController.Signup)
 	r.Run(":8080")
 
 	// out, err := exec.Command("/bin/bash", "python3 api/api.py").Output()

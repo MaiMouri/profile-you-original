@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
-	"profileyou/api/config"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type DallEAPIResponse struct {
@@ -34,7 +36,12 @@ type RequestBody struct {
 // }
 
 func ImageGenerator(keyword string) []Data {
-	token := config.Config.ApiKey
+	err := godotenv.Load(".env")
+	if err != nil {
+		panic("Error loading .env file")
+	}
+	// token := config.Config.ApiKey
+	token := os.Getenv("OPEN_API_KEY")
 
 	requestBody := &RequestBody{
 		Prompt: keyword,

@@ -1,118 +1,129 @@
 package user
 
 import (
-	"errors"
-	"fmt"
+	_ "errors"
+	_ "fmt"
 
-	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
+	sqlite "profileyou/api/config/database"
+
+	_ "golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type User struct {
-	userId   userId
-	email    email
-	password password
+	gorm.Model
+	Email    string
+	Password string
 }
 
-type userId string
-type email string
-type password string
+func (u *User) Create() {
+	db := sqlite.New()
 
-func (u *User) PasswordMatches(plainText string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword([]byte(u.password), []byte(plainText))
+	connect, err := db.DB()
 	if err != nil {
-		switch {
-		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
-			// invalid password
-			return false, nil
-		default:
-			return false, err
-		}
+		panic(err)
 	}
 
-	return true, nil
+	db.Create(u)
+
+	connect.Close()
 }
 
-func New(userId string, email string, password string) (*User, error) {
-	createdUserId, err := NewUserId(userId)
-	if err != nil {
-		return nil, err
-	}
+// func (u *User) PasswordMatches(plainText string) (bool, error) {
+// 	err := bcrypt.CompareHashAndPassword([]byte(u.password), []byte(plainText))
+// 	if err != nil {
+// 		switch {
+// 		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
+// 			// invalid password
+// 			return false, nil
+// 		default:
+// 			return false, err
+// 		}
+// 	}
 
-	createdEmail, err := newEmail(email)
-	if err != nil {
-		return nil, err
-	}
+// 	return true, nil
+// }
 
-	createdPassword, err := newPassword(password)
-	if err != nil {
-		return nil, err
-	}
+// func New(userId string, email string, password string) (*User, error) {
+// 	createdUserId, err := NewUserId(userId)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	user := User{
-		userId:   *createdUserId,
-		email:    *createdEmail,
-		password: *createdPassword,
-	}
+// 	createdEmail, err := newEmail(email)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return &user, nil
-}
+// 	createdPassword, err := newPassword(password)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-// Create Constructor
-func Create(email string, password string) (*User, error) {
-	userId := uuid.New().String()
-	user, err := New(userId, email, password)
+// 	user := User{
+// 		userId:   *createdUserId,
+// 		email:    *createdEmail,
+// 		password: *createdPassword,
+// 	}
 
-	if err != nil {
-		return nil, err
-	}
+// 	return &user, nil
+// }
 
-	return user, err
-}
+// // Create Constructor
+// func Create(email string, password string) (*User, error) {
+// 	userId := uuid.New().String()
+// 	user, err := New(userId, email, password)
 
-// Getter
-func (u User) GetUserId() string {
-	return string(u.userId)
-}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-func (u User) GetEmail() string {
-	return string(u.email)
-}
+// 	return user, err
+// }
 
-func (u User) GetPassword() string {
-	return string(u.password)
-}
+// // Getter
+// func (u User) GetUserId() string {
+// 	return string(u.userId)
+// }
 
-// value constructors
-func NewUserId(value string) (*userId, error) {
-	if value == "" {
-		err := fmt.Errorf("%s", "empty arg:userId NewUserId()")
-		return nil, err
-	}
+// func (u User) GetEmail() string {
+// 	return string(u.email)
+// }
 
-	userId := userId(value)
+// func (u User) GetPassword() string {
+// 	return string(u.password)
+// }
 
-	return &userId, nil
-}
+// // value constructors
+// func NewUserId(value string) (*userId, error) {
+// 	if value == "" {
+// 		err := fmt.Errorf("%s", "empty arg:userId NewUserId()")
+// 		return nil, err
+// 	}
 
-func newEmail(value string) (*email, error) {
-	if value == "" {
-		err := fmt.Errorf("%s", "empty arg:email newEmail()")
-		return nil, err
-	}
+// 	userId := userId(value)
 
-	email := email(value)
+// 	return &userId, nil
+// }
 
-	return &email, nil
-}
+// func newEmail(value string) (*email, error) {
+// 	if value == "" {
+// 		err := fmt.Errorf("%s", "empty arg:email newEmail()")
+// 		return nil, err
+// 	}
 
-func newPassword(value string) (*password, error) {
-	if value == "" {
-		err := fmt.Errorf("%s", "empty arg:password newPassword()")
-		return nil, err
-	}
+// 	email := email(value)
 
-	password := password(value)
+// 	return &email, nil
+// }
 
-	return &password, nil
-}
+// func newPassword(value string) (*password, error) {
+// 	if value == "" {
+// 		err := fmt.Errorf("%s", "empty arg:password newPassword()")
+// 		return nil, err
+// 	}
+
+// 	password := password(value)
+
+// 	return &password, nil
+// }

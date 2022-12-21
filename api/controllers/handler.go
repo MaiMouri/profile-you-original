@@ -3,20 +3,30 @@ package contorllers
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"reflect"
 	"sync"
+	"time"
 
 	gen "profileyou/api/ImageGenerator"
+	"profileyou/api/service"
 	"profileyou/api/usecase"
 	"profileyou/api/utils/errors"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	_ "github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
+
 	// "gorm.io/driver/sqlite"
+	"profileyou/api/LoCred"
 )
 
 type keywordController struct {
 	keywordUseCase usecase.KeywordUseCase
+	loginService   service.LoginService
+	signupService  service.SignupService
+	jWtService     service.JWTService
 }
 
 // likes to Usecase by "ku"
@@ -248,6 +258,64 @@ func (ku *keywordController) DeleteKeyword(c *gin.Context) {
 	}
 	fmt.Printf("Delete json %v\n", json)
 	c.IndentedJSON(http.StatusOK, gin.H{"data": keyword_id})
+
+}
+
+func (ku *keywordController) Authenticate(ctx *gin.Context) {
+
+	fmt.Println("LOGIN: ")
+	token := ku.Login(ctx)
+	fmt.Printf("Token: %v\n", token)
+	if token != "" {
+		ctx.JSON(http.StatusOK, gin.H{
+			"token": token,
+		})
+	} else {
+		ctx.JSON(http.StatusUnauthorized, nil)
+	}
+
+}
+
+func (ku *keywordController) Login(ctx *gin.Context) string {
+
+	var credential LoCred.LoginCredentials
+	fmt.Println("LoginController login cunf run")
+	err := ctx.ShouldBindJSON(&credential)
+	if err != nil {
+		return ""
+	}
+
+	user, err := ku.keywordUseCase.GetUserForAuth(credential.Email)
+	if err != nil {
+		fmt.Println(err)
+		apiErr := errors.NewBadRequestError("Bad Request")
+		ctx.IndentedJSON(apiErr.Status, apiErr)
+		return ""
+	}
+
+	fmt.Println(user.Password, credential.Password)
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credential.Password))
+	if err != nil {
+		fmt.Println(err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid email or password",
+		})
+		return ""
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+	})
+
+	//encoded string
+	t, err := token.SignedString([]byte(os.Getenv("SECRET")))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("token : %v\n", token)
+	return t
 
 }
 

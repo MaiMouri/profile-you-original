@@ -41,6 +41,7 @@ func getSecretKey() string {
 }
 
 func (service *jwtServices) GenerateToken(email string, isUser bool) string {
+	fmt.Printf("email: %v, isUser %v", email, isUser)
 	claims := &authCustomClaims{
 		email,
 		isUser,
