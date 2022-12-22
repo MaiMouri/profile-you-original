@@ -1,4 +1,12 @@
-// import { initStore } from "./store";
+import { configureStore } from '@reduxjs/toolkit';
+import keywordsReducer from '../keywordsSlice';
+
+
+export default configureStore({
+    reducer: {
+      keywords: keywordsReducer,
+    },
+  });
 
 // const configureStore = () => {
 //     const actions = {

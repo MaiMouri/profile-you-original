@@ -16,18 +16,20 @@ import {
   from "@chakra-ui/react"
 import axios from "axios";
 import Swal from "sweetalert2";
-import { useEffect, useState } from "react";
+import { useEffect, useState, createContext } from "react";
 import Keywords from "./components/Keywords";
 import React from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import Keyword from "./components/Keyword";
 import Login from "./components/Login";
-// import { useSelector } from "react-redux";
+import {addKeyword, deleteKeyword} from './keywordsSlice'
+import { selectKeyword, fetchItems, postKeyword } from './keywordsSlice';
 
 
+export const userToken = createContext();
 
 const App = () => {
-  // const lists = useSelector((state) => state.lists);
   const navigate = useNavigate();
   const [image, updateImage] = useState();
   const [word, updateWord] = useState();
@@ -40,10 +42,12 @@ const App = () => {
     ImageUrl: "",
     KeywordId: ""
   });
-
+  
   const [jwtToken, setJwtToken] = useState("");
+  const value = { jwtToken, setJwtToken };
   const [alertMessage, setAlertMessage] = useState("");
   const [alertClassName, setAlertClassName] = useState("d-none");
+
 
   const logOut = () => {
     const requestOptions = {
@@ -56,6 +60,7 @@ const App = () => {
       console.log("error logging out", error);
     })
     .finally(() => {
+      localStorage.removeItem("user");
       setJwtToken("");
       // toggleRefresh(false);
     })
@@ -63,8 +68,29 @@ const App = () => {
     navigate("/login");
   }
 
+  //useSelectorでstoreの中のstateにアクセスできる。usersはreducer名
+  const { loadingNow, error, items } = useSelector(selectKeyword);
+  // const items = useSelector(selectKeyword);
+  // const keywordList = useSelector((state) => state.keywords.value);
+  const dispatch = useDispatch();
+
+  const handleClick = () => {
+    dispatch(
+      addKeyword({
+        KeywordId: "NEW ID",
+        word: "NEW",
+        Description: "NEW Description",
+        ImageUrl: "NEW Image URL",
+      })
+    );
+
+    updateWord("")
+    // setContent("");
+  };
+
   // START FETCHING
   useEffect(() => {
+    dispatch(fetchItems());
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
 
@@ -82,7 +108,7 @@ const App = () => {
       .catch(err => {
         console.log(err);
       })
-  }, []);
+  }, [dispatch]);
   // FINISH FETCHING
 
   // DELETE
@@ -98,13 +124,6 @@ const App = () => {
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
-        // axios.delete(url)
-        // .then(res => {
-        //   const keywords = this.state.keywords.filter(keyword => keyword.id !== id);
-        //   console.log("Delete from react:");
-        //   setKeywords({keywords})
-        //   console.log(res.data);
-        // })
         let headers = new Headers();
         headers.append("Content-Type", "application/json");
         // headers.append("Authorization", "Bearer " + jwtToken)
@@ -145,37 +164,45 @@ const App = () => {
 
   const generate = async (word) => {
     updateLoading(true);
+    const newKeyword = {
+      Word: word,
+      Description: "",
+      ImageUrl: "",
+      KeywordId: "",
+    }
+    dispatch(postKeyword(newKeyword));
     // const request = await axios.post(`http://localhost:8080/keyword/create/${word}`);
     // const result = await axios.get(`http://localhost:8080/keyword/create/${word}`);
     // updateImage(result.data);
-    const requestBody = keyword;
-    requestBody.word = word;
     
-    let headers = new Headers();
-    headers.append("Content-Type", "application/json");
-        // headers.append("Authorization", "Bearer " + jwtToken)
-    const requestOptions = {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(requestBody)
-    };
+    // const requestBody = keyword;
+    // requestBody.word = word;
+    
+    // let headers = new Headers();
+    // headers.append("Content-Type", "application/json");
+    //     // headers.append("Authorization", "Bearer " + jwtToken)
+    // const requestOptions = {
+    //   method: "POST",
+    //   headers: headers,
+    //   body: JSON.stringify(requestBody)
+    // };
 
-        const url = `http://localhost:8080/keyword/create/${word}`;
-        fetch(url, requestOptions)
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.error) {
-              console.log(data.error);
-            } else {
-              console.log(data.data)
-              setKeywords([...keywords,
-                data.data,
-              ]);
-              // tentative first aid
-              window.location.reload();
-              navigate("/keywords")
-            }
-          })
+    //     const url = `http://localhost:8080/keyword/create/${word}`;
+    //     fetch(url, requestOptions)
+    //       .then((response) => response.json())
+    //       .then((data) => {
+    //         if (data.error) {
+    //           console.log(data.error);
+    //         } else {
+    //           console.log(data.data)
+    //           setKeywords([...keywords,
+    //             data.data,
+    //           ]);
+    //           // tentative first aid
+    //           window.location.reload();
+    //           navigate("/keywords")
+    //         }
+    //       })
     updateLoading(false);
   };
 
@@ -183,17 +210,19 @@ const App = () => {
   return (
     <ChakraProvider>
       <Container>
-        <div className="col text-end">
-          {jwtToken === "" ? (
-            <Link to="/login">
-              <span className="badge bg-success">Login</span>
-            </Link>
-          ) : (
-            <a href="#!" onClick={logOut}>
-              <span className="badge bg-danger">Logout</span>
-            </a>
-          )}
-          <hr className="mb-3"></hr>
+        <div className="col text-end pb-3">
+          <div style={{'margin-bottom':'4px'}}>
+            {localStorage.getItem("user") === "" ? (
+              <Link href="/login">
+                <span className="badge bg-success">Login</span>
+              </Link>
+            ) : (
+              <a href="#!" onClick={logOut}>
+                <span className="badge bg-danger">Logout</span>
+              </a>
+            )}
+          </div>
+          <hr className="mt-3"></hr>
         </div>
         <Heading className="h1">Profile You🚀</Heading>
         <Text marginBottom={"10px"}>
@@ -237,6 +266,7 @@ const App = () => {
         {/* Routeの一部にしない下記の記述は居座るから🆖 */}
         {/* <Keywords keywords={keywords} confirmDelete={confirmDelete}/> */}
         {/* このルーティングめちゃくちゃ苦労した　何だこれ */}
+        <userToken.Provider value={value}>
         <Routes>
           <Route path={`/login`} element={<Login />} context={{
               jwtToken,
@@ -245,9 +275,22 @@ const App = () => {
               setAlertMessage,
               // toggleRefresh,
             }}/>
-          <Route path={`/keywords`} element={<Keywords keywords={keywords} confirmDelete={confirmDelete}/>} />
+          {/* <Route path={`/keywords`} element={<Keywords keywords={keywords} confirmDelete={confirmDelete}/>} /> */}
+          <Route path={`/keywords`} element={<Keywords keywords={items} confirmDelete={confirmDelete}/>} />
           <Route path={`/keywords/:id`} element={<Keyword />} />
         </Routes>
+        </userToken.Provider>
+        <div className="displayPosts">
+        {items.map((keyword) => (
+          <div key={keyword.KeywordId} className="keyword">
+            <h1 className="keywordName">{keyword.Word}</h1>
+            <h1 className="keywordContent">{keyword.Description}</h1>
+            <button onClick={() => dispatch(deleteKeyword({ KeywordId: keyword.KeywordId }))}>
+              削除
+            </button>
+          </div>
+            ))}
+         </div>
 
       </Container>
     </ChakraProvider>

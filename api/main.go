@@ -101,7 +101,7 @@ func main() {
 	r.POST("/keyword/update/", keywordController.UpdateKeyword)
 	r.POST("/keyword/delete/", keywordController.DeleteKeyword)
 	// r.POST("/login", userController.Authenticate)
-	r.GET("/login", userController.Authenticate)
+	r.POST("/login", userController.Authenticate)
 	// r.POST("/refresh", userController.RefreshToken)
 	r.POST("/register", userController.Signup)
 	r.Run(":8080")

@@ -1,21 +1,20 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, createBrowserRouter, RouterProvider } from 'react-router-dom';
-// import App from './App';
 import Keywords from './components/Keywords';
 import Keyword from './components/Keyword';
 import Login from './components/Login';
 import Home from './components/Home';
 import ErrorPage from './components/ErrorPage';
+import App from './App';
 
 // Redux
-// import { configureStore } from '@reduxjs/toolkit';
-// import { Provider } from 'react-redux'
-import store from "./store/index"
-import App from './App';
-// import App from './containers/App'
-// import reducer from './containers/reducer'
-// const store = configureStore(reducer)
+
+import { Provider } from 'react-redux';
+import { configureStore } from "@reduxjs/toolkit";
+import keywordsReducer from './keywordsSlice'
+import store from './store/keywords-store'
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -52,10 +51,10 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      {/* <Provider store={store}> */}
+      <Provider store={store}>
         <App />
         {/* <RouterProvider router={router} /> */}
-      {/* </Provider> */}
+      </Provider>
     </BrowserRouter>
   </React.StrictMode>
 );

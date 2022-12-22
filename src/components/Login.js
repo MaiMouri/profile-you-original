@@ -1,12 +1,15 @@
-import { useState } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { userToken } from "../App";
 import Input from "./form/Input";
 
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
+    
     const [ jwtToken, setJwtToken ] = useState("");
+    const [alertMessage, setAlertMessage] = useState("");
+    const [alertClassName, setAlertClassName] = useState("d-none");
     // const { setAlertClassName } = useOutletContext();
     // const { setAlertMessage } = useOutletContext();
     // const { toggleRefresh } = useOutletContext();
@@ -35,14 +38,17 @@ const Login = () => {
             .then((response) => response.json())
             .then((data) => {
                 if (data.error) {
-                    // setAlertClassName("alert-danger");
-                    // setAlertMessage(data.message);
+                    setAlertClassName("alert-danger");
+                    setAlertMessage(data.message);
                 } else {
+                    if(data.token) {
+                        localStorage.setItem("user", JSON.stringify(data.token))
+                    }
                     setJwtToken(data.token);
                     // setAlertClassName("d-none");
                     // setAlertMessage("");
                     // toggleRefresh(true);
-                    navigate("/");
+                    navigate("/keywords");
                 }
             })
             .catch(error => {
