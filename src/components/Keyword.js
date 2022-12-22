@@ -1,11 +1,22 @@
+import userEvent from "@testing-library/user-event";
 import React from "react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import Input from "./form/Input";
 
-const Keyword = () => {
-    const [keyword, setKeyword] = useState({});
-    let { id } = useParams();
-
+const Keyword = (props) => {
+  const navigate = useNavigate();
+  const [keyword, setKeyword] = useState({
+    Id: 0,
+    Word: "",
+    Description: "",
+    ImageUrl: "",
+    KeywordId: ""
+  });
+  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState([]);
+  let { id } = useParams();
+  
     useEffect(() => {
         const headers = new Headers();
         headers.append("Content-Type", "application/json");
@@ -15,7 +26,7 @@ const Keyword = () => {
             headers: headers,
         }
 
-        fetch(`/keyword/${id}`, requestOptions)
+        fetch(`/keywords/${id}`, requestOptions)
             .then((response) => response.json())
             .then((data) => {
                 setKeyword(data);
@@ -25,20 +36,97 @@ const Keyword = () => {
             })
     }, [id])
 
+    const hasError = (key) => {
+        return errors.indexOf(key) !== -1;
+      };
+    const handleChange = () => (event) => {
+        let value = event.target.value;
+        let name = event.target.name;
+        setKeyword({
+          ...keyword,
+          [name]: value
+        });
+        console.log(keyword);
+      };
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        
+        const requestBody = keyword;
+    
+        // passed validation, so save changes
+        let headers = new Headers();
+        headers.append("Content-Type", "application/json");
+    
+        const requestOptions = {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(requestBody)
+        };
+
+        fetch(`/keyword/update/`, requestOptions)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            console.log(data.error);
+          } else {
+            console.log("UPDATED");
+            navigate("/keywords");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      }
 
     return(
         <div>
-            <h2>Keyword: {keyword.word}</h2>
-            <small><em>{keyword.description}</em></small><br />
+            <h2>Keyword: {keyword.Word}</h2>
+            <small><em>{keyword.Description}</em></small><br />
             <hr />
+            <form onSubmit={handleSubmit}>
+            <Input
+            title={"Word"}
+            className={"form-control"}
+            type={"text"}
+            name={"Word"}
+            value={keyword.Word}
+            onChange={handleChange("Keyword")}
+            errorDiv={hasError("word") ? "text-danger" : "d-none"}
+            errorMsg={"Please enter a keyword"}
+          />
+            <Input
+            title={"Description"}
+            className={"form-control"}
+            type={"text"}
+            name={"Description"}
+            value={keyword.Description}
+            onChange={handleChange("Description")}
+            // errorDiv={hasError("description") ? "text-danger" : "d-none"}
+            // errorMsg={"Please enter a keyword"}
+          />
+            <Input
+            title={"ImageUrl"}
+            className={"form-control"}
+            type={"text"}
+            name={"ImageUrl"}
+            value={keyword.ImageUrl}
+            onChange={handleChange("ImageUrl")}
+            // errorDiv={hasError("description") ? "text-danger" : "d-none"}
+            // errorMsg={"Please enter a keyword"}
+          />
+          <hr />
+          <hr />
+          <button className="btn btn-primary">Save</button>
 
-            {keyword.image_url !== "" &&
+            {keyword.imageUrl !== "" &&
                 <div className="mb-3">
-                    <img src={`${keyword.image_url}`} alt="picture" />
+                    <img src={`${keyword.ImageUrl}`} alt="picture" />
                 </div>
             }
 
-            {/* <p>{movie.description}</p> */}
+            </form>
+            <Link to={`/keywords`}><button className="btn btn-light">Home</button></Link>
         </div>
     )
 }

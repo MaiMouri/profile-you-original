@@ -1,13 +1,13 @@
 package main
 
 import (
-	"net/http"
+	"fmt"
+	"os"
 	"os/exec"
 	"time"
 
 	sqlite "profileyou/api/config/database"
 	controllers "profileyou/api/controllers"
-	"profileyou/api/domain/repository"
 	"profileyou/api/infrastructure/persistance"
 	"profileyou/api/usecase"
 
@@ -15,25 +15,15 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	// "gorm.io/driver/sqlite"
 )
 
-// const port = 8080
-
-// type application struct {
-// 	DSN          string
-// 	Domain       string
-// 	DB           repository.DatabaseRepo
-// 	JWTSecret    string
-// 	JWTIssuer    string
-// 	JWTAudience  string
-// 	CookieDomain string
-// 	APIKey       string
-// }
-
 func main() {
-	// set application config
-	// var app application
+	// var app Application
+	// var loginService service.LoginService = service.StaticLoginService()
+	// var jwtService service.JWTService = service.JWTAuthService()
+	// var userController controllers.UserController = controllers.UserHandler(loginService, jwtService)
 
 	// connect to the database
 	db := sqlite.New()
@@ -43,15 +33,20 @@ func main() {
 		panic(err)
 	}
 	defer connect.Close()
-	// app.DB = &dbrepo.SQliteDBRepo{DB: connect}
-	// defer app.DB.Connection().Close()
 
-	var keywordRepository repository.KeywordRepository
-	keywordPersistance := persistance.NewKeywordPersistance(db, keywordRepository)
-	keywordUseCase := usecase.NewKeywordUseCase(keywordPersistance)
+	err = godotenv.Load(fmt.Sprintf("../%s.env", os.Getenv("GO_ENV")))
+
+	// DI
+	keywordRepository := persistance.NewKeywordPersistance(db)
+	keywordUseCase := usecase.NewKeywordUseCase(keywordRepository)
 	keywordController := controllers.NewKeywordController(keywordUseCase)
 
+	userRepository := persistance.NewUserPersistance(db)
+	userUseCase := usecase.NewUserUseCase(userRepository)
+	userController := controllers.NewUserController(userUseCase)
+
 	r := gin.Default()
+	r.LoadHTMLGlob("api/view/*html")
 	r.Use(cors.New(cors.Config{
 		// アクセスを許可したいアクセス元
 		AllowOrigins: []string{
@@ -103,14 +98,13 @@ func main() {
 	r.GET("/keywords/:id", keywordController.GetKeyword)
 	// create a new keyword
 	r.POST("/keyword/create/:word", keywordController.CreateKeyword)
-	r.POST("/keyword/update/:id", keywordController.UpdateKeyword)
-	r.DELETE("/keyword/delete/:id", keywordController.DeleteKeyword)
-	r.GET("/message", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Hello world",
-		})
-	})
-	r.Run()
+	r.POST("/keyword/update/", keywordController.UpdateKeyword)
+	r.POST("/keyword/delete/", keywordController.DeleteKeyword)
+	// r.POST("/login", userController.Authenticate)
+	r.POST("/login", userController.Authenticate)
+	// r.POST("/refresh", userController.RefreshToken)
+	r.POST("/register", userController.Signup)
+	r.Run(":8080")
 
 	// out, err := exec.Command("/bin/bash", "python3 api/api.py").Output()
 	// if err != nil {

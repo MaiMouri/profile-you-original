@@ -3,18 +3,30 @@ package contorllers
 import (
 	"fmt"
 	"net/http"
-	"strconv"
+	"os"
+	"reflect"
+	"sync"
+	"time"
 
+	gen "profileyou/api/ImageGenerator"
+	"profileyou/api/service"
 	"profileyou/api/usecase"
 	"profileyou/api/utils/errors"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
+	_ "github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
+
 	// "gorm.io/driver/sqlite"
+	"profileyou/api/LoCred"
 )
 
 type keywordController struct {
-	// keywordRepository repository.KeywordRepository
 	keywordUseCase usecase.KeywordUseCase
+	loginService   service.LoginService
+	signupService  service.SignupService
+	jWtService     service.JWTService
 }
 
 // likes to Usecase by "ku"
@@ -27,54 +39,93 @@ func NewKeywordController(ku usecase.KeywordUseCase) keywordController {
 
 func (ku *keywordController) GetAllKeywordsGin(c *gin.Context) {
 	keywords, err := ku.keywordUseCase.GetKeywords()
+	// fmt.Printf("keywords :%v\n", keywords)
 	if err != nil {
 		fmt.Println(err)
-		apiErr := errors.NewBadRequestError("Bad Request")
+		apiErr := errors.NewBadRequestError("Get all Bad Request")
 		c.IndentedJSON(apiErr.Status, apiErr)
 		return
 	}
-	c.IndentedJSON(http.StatusOK, keywords)
+	type ResultDataField struct {
+		KeywordId   string
+		Word        string
+		Description string
+		ImageUrl    string
+	}
+	var data []ResultDataField
+	for _, keyword := range keywords {
+		keywordId := string(keyword.GetKeywordId())
+		word := string(keyword.GetWord())
+		description := string(keyword.GetDescription())
+		imageUrl := string(keyword.GetImageUrl())
+		data = append(data, ResultDataField{KeywordId: keywordId, Word: word, Description: description, ImageUrl: imageUrl})
+	}
+	// c.HTML(200, "index.html", gin.H{"keywords": data})
+	c.IndentedJSON(http.StatusOK, data)
 }
 
 func (ku *keywordController) GetKeyword(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		apiErr := errors.NewBadRequestError("Bad Request")
-		c.IndentedJSON(apiErr.Status, apiErr)
-		return
-	}
-
+	id := c.Param("id")
+	fmt.Printf("param id: %v\n", id)
 	keyword, err := ku.keywordUseCase.GetKeyword(id)
+	fmt.Printf("keyword id: %v\n", keyword)
 	if err != nil {
-		fmt.Printf("Error %v", err)
-		// c.JSON(http.StatusNotFound, errorResponse(err))
-		apiErr := errors.NotFoundError("Not found")
+		fmt.Println(err)
+		apiErr := errors.NotFoundError("Tried to find the record but Not found")
 		c.IndentedJSON(apiErr.Status, apiErr)
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, keyword)
+	type ResultDataField struct {
+		KeywordId   string
+		Word        string
+		Description string
+		ImageUrl    string
+	}
+
+	data := ResultDataField{
+		KeywordId:   string(keyword.GetKeywordId()),
+		Word:        string(keyword.GetWord()),
+		Description: string(keyword.GetDescription()),
+		ImageUrl:    string(keyword.GetImageUrl()),
+	}
+	c.IndentedJSON(http.StatusOK, data)
 
 }
 
 func (ku *keywordController) Index(c *gin.Context) {
 	keywords, err := ku.keywordUseCase.GetKeywords()
+	fmt.Printf("keywords :%v\n", keywords)
 	if err != nil {
 		fmt.Println(err)
-		apiErr := errors.NewBadRequestError("Bad Request")
+		apiErr := errors.NewBadRequestError("Index Bad Request")
 		c.IndentedJSON(apiErr.Status, apiErr)
 		return
 	}
-	c.IndentedJSON(http.StatusOK, keywords)
+	// 20221213 - Deleted prior to implement ResultDataField struct
+	// c.IndentedJSON(http.StatusOK, keywords)
+
+	type ResultDataField struct {
+		KeywordId   string
+		Word        string
+		Description string
+		ImageUrl    string
+	}
+	var data []ResultDataField
+	for _, keyword := range keywords {
+		keywordId := string(keyword.GetKeywordId())
+		word := string(keyword.GetWord())
+		description := string(keyword.GetDescription())
+		imageUrl := string(keyword.GetImageUrl())
+		data = append(data, ResultDataField{KeywordId: keywordId, Word: word, Description: description, ImageUrl: imageUrl})
+	}
+	c.HTML(200, "index.html", gin.H{"keywords": data})
+	// c.IndentedJSON(http.StatusOK, data)
 }
 
 func (ku *keywordController) DetailKeyword(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 
+	id := c.Param("id")
 	keyword, err := ku.keywordUseCase.GetKeyword(id)
 	if err != nil {
 		fmt.Println(err)
@@ -82,28 +133,87 @@ func (ku *keywordController) DetailKeyword(c *gin.Context) {
 		c.IndentedJSON(apiErr.Status, apiErr)
 		return
 	}
-	c.IndentedJSON(http.StatusOK, keyword)
+
+	type ResultDataField struct {
+		KeywordId   string
+		Word        string
+		Description string
+		ImageUrl    string
+	}
+
+	data := ResultDataField{KeywordId: string(keyword.GetKeywordId()), Word: string(keyword.GetWord()), Description: string(keyword.GetDescription()), ImageUrl: string(keyword.GetImageUrl())}
+	c.IndentedJSON(http.StatusOK, data)
 }
 
 func (ku *keywordController) CreateKeyword(c *gin.Context) {
-	word := c.Param("word")
-	fmt.Printf("Receive a post: %s", word)
+	type RequestDataField struct {
+		Word        string `json:"Word" binding:"required"`
+		Description string `json:"Description"`
+		ImageUrl    string `json:"ImageUrl"`
+		KeywordId   string `json:"KeywordId"`
+	}
 
-	// keyword := model.Keyword{Word: word}
-	err := ku.keywordUseCase.CreateKeyword(word)
-	if err != nil {
-		fmt.Println(err)
-		apiErr := errors.InternalSeverError("Server Error")
+	var json RequestDataField
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		fmt.Printf("Error: %v\n", err)
+		apiErr := errors.NewBadRequestError("Bad request on binding json")
 		c.IndentedJSON(apiErr.Status, apiErr)
 		return
 	}
 
-	c.Redirect(301, "/")
+	word := json.Word
+	description := ""
+	imageUrl := ""
+	fmt.Printf("Receive a post: %s\n", word)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		result := gen.ImageGenerator(word)
+		fmt.Println(reflect.TypeOf(result[0].Url))
+		fmt.Printf("Image Datas generated by api: %v\n", result[0].Url)
+		imageUrl = result[0].Url
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	err := ku.keywordUseCase.CreateKeyword(word, description, imageUrl)
+	if err != nil {
+		fmt.Println(err)
+		apiErr := errors.InternalSeverError("Server Error when posting")
+		c.IndentedJSON(apiErr.Status, apiErr)
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"data": json})
 }
 
 func (ku *keywordController) UpdateKeyword(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
-	fmt.Printf("Updating a keyword id: %d", id)
+	type RequestDataField struct {
+		KeywordId   string `json:"KeywordId" binding:"required"`
+		Word        string `json:"Word" binding:"required"`
+		Description string `json:"Description"`
+		ImageUrl    string `json:"ImageUrl"`
+	}
+
+	var json RequestDataField
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		fmt.Println(err)
+		apiErr := errors.NewBadRequestError("Bad request")
+		c.IndentedJSON(apiErr.Status, apiErr)
+		return
+	}
+
+	id := json.KeywordId
+	word := json.Word
+	description := json.Description
+	imageUrl := json.ImageUrl
+
+	fmt.Printf("Updating a keyword id: %v", id)
+	fmt.Printf("Updating a description: %v", description)
 	keyword, err := ku.keywordUseCase.GetKeyword(id)
 	if err != nil {
 		fmt.Println(err)
@@ -112,12 +222,7 @@ func (ku *keywordController) UpdateKeyword(c *gin.Context) {
 		return
 	}
 
-	word := c.Param("word")
-	description := c.Param("description")
-
-	keyword.Word = word
-	keyword.Description = description
-	err = ku.keywordUseCase.UpdateKeyword(id, word, description)
+	err = ku.keywordUseCase.UpdateKeyword(id, word, description, imageUrl)
 	if err != nil {
 		fmt.Println(err)
 		apiErr := errors.InternalSeverError("Server Error")
@@ -129,154 +234,140 @@ func (ku *keywordController) UpdateKeyword(c *gin.Context) {
 }
 
 func (ku *keywordController) DeleteKeyword(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	type RequestDataField struct {
+		KeywordId string `json:"KeywordId" binding:"required"`
+	}
+	var json RequestDataField
+
+	if err := c.ShouldBindJSON(&json); err != nil {
 		fmt.Println(err)
-		apiErr := errors.NewBadRequestError("Bad request")
+		apiErr := errors.NewBadRequestError("Bad Request")
 		c.IndentedJSON(apiErr.Status, apiErr)
+		return
 	}
 
-	keyword, err := ku.keywordUseCase.GetKeyword(id)
-	if err != nil {
-		fmt.Println(err)
-		apiErr := errors.NotFoundError("Not found")
-		c.IndentedJSON(apiErr.Status, apiErr)
-	}
+	keyword_id := json.KeywordId
 
-	err = ku.keywordUseCase.DeleteKeyword(id)
+	fmt.Printf("Delete mode%v\n", keyword_id)
+	err := ku.keywordUseCase.DeleteKeyword(keyword_id)
 	if err != nil {
 		fmt.Println(err)
 		apiErr := errors.InternalSeverError("Server Error")
 		c.IndentedJSON(apiErr.Status, apiErr)
 		return
 	}
+	fmt.Printf("Delete json %v\n", json)
+	c.IndentedJSON(http.StatusOK, gin.H{"data": keyword_id})
 
-	c.IndentedJSON(http.StatusOK, keyword)
-
-	// c.Redirect(302, "/")
 }
 
-// func (app *application) GetAllKeywords(w http.ResponseWriter, r *http.Request) {
-// 	keywords, err := app.DB.AllKeywords()
+func (ku *keywordController) Authenticate(ctx *gin.Context) {
+
+	fmt.Println("LOGIN: ")
+	token := ku.Login(ctx)
+	fmt.Printf("Token: %v\n", token)
+	if token != "" {
+		ctx.JSON(http.StatusOK, gin.H{
+			"token": token,
+		})
+	} else {
+		ctx.JSON(http.StatusUnauthorized, nil)
+	}
+
+}
+
+func (ku *keywordController) Login(ctx *gin.Context) string {
+
+	var credential LoCred.LoginCredentials
+	fmt.Println("LoginController login cunf run")
+	err := ctx.ShouldBindJSON(&credential)
+	if err != nil {
+		return ""
+	}
+
+	user, err := ku.keywordUseCase.GetUserForAuth(credential.Email)
+	if err != nil {
+		fmt.Println(err)
+		apiErr := errors.NewBadRequestError("Bad Request")
+		ctx.IndentedJSON(apiErr.Status, apiErr)
+		return ""
+	}
+
+	fmt.Println(user.Password, credential.Password)
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credential.Password))
+	if err != nil {
+		fmt.Println(err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid email or password",
+		})
+		return ""
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+	})
+
+	//encoded string
+	t, err := token.SignedString([]byte(os.Getenv("SECRET")))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("token : %v\n", token)
+	return t
+
+}
+
+// func (ku *keywordController) Authenticate(c *gin.Context) {
+// 	// read json payload
+// 	// var requestPayload struct {
+// 	// 	Email    string `json:"email"`
+// 	// 	Password string `json:"password"`
+// 	// }
+
+// 	// err := readJSON(w, r, &requestPayload)
+// 	// if err != nil {
+// 	// 	ku.errorJSON(w, err, http.StatusBadRequest)
+// 	// 	return
+// 	// }
+
+// 	// // validate user against database
+// 	// user, err := ku.DB.GetUserByEmail(requestPayload.Email)
+// 	// if err != nil {
+// 	// 	ku.errorJSON(w, errors.New("invalid credentials"), http.StatusBadRequest)
+// 	// 	return
+// 	// }
+
+// 	// // check password
+// 	// valid, err := user.PasswordMatches(requestPayload.Password)
+// 	// if err != nil || !valid {
+// 	// 	ku.errorJSON(w, errors.New("invalid credentials"), http.StatusBadRequest)
+// 	// 	return
+// 	// }
+
+// 	// create a jwt user
+// 	u := auth.JwtUser{
+// 		ID:        1,
+// 		FirstName: "Admin",
+// 		LastName:  "User",
+// 	}
+// 	// u := jwtUser{
+// 	// 	ID:        user.ID,
+// 	// 	FirstName: user.FirstName,
+// 	// 	LastName:  user.LastName,
+// 	// }
+
+// 	// // generate tokens
+// 	tokens, err := ku.auth.GenerateTokenPair(&u)
 // 	if err != nil {
-// 		fmt.Println(err)
+// 		apiErr := errors.NewBadRequestError("Bad request")
+// 		c.IndentedJSON(apiErr.Status, apiErr)
 // 		return
 // 	}
+// 	log.Println(tokens.Token)
+// 	// refreshCookie := ku.auth.GetRefreshCookie(tokens.RefreshToken)
+// 	// http.SetCookie(w, refreshCookie)
 
-// 	out, err := json.Marshal(keywords)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	w.Write(out)
-// var keywords []models.Keyword
-
-// Temtative list
-// one := models.Keyword{
-// 	ID:          1,
-// 	Word:        "クリスマス",
-// 	ImageUrl:    "",
-// 	Description: "12月にプレゼント渡す",
-// 	CreatedAt:   time.Now(),
-// }
-// keywords = append(keywords, one)
-
-// two := models.Keyword{
-// 	ID:          2,
-// 	Word:        "テスラ",
-// 	ImageUrl:    "",
-// 	Description: "イーロンマスクがTwitter買収",
-// 	CreatedAt:   time.Now(),
-// }
-// keywords = append(keywords, two)
-
-// out, err := json.Marshal(keywords)
-// if err != nil {
-// 	fmt.Println(err)
-// }
-
-// c.JSONP(http.StatusOK, gin.H{
-// 	"message": "ok",
-// 	"data":    out,
-// 	"lists":   keywords,
-// })
-
-// }
-
-// func (app *application) GetKeyword(w http.ResponseWriter, r *http.Request) {
-// 	// db := sqlite.New()
-
-// 	// id := c.Param("id")
-// 	id := chi.URLParam(r, "id")
-// 	keywordID, err := strconv.Atoi(id)
-// 	if err != nil {
-// 		app.errorJSON(w, err)
-// 		return
-// 	}
-
-// 	keyword, err := app.DB.OneMovie(keywordID)
-// 	if err != nil {
-// 		app.errorJSON(w, err)
-// 		return
-// 	}
-
-// 	_ = app.writeJSON(w, http.StatusOK, keyword)
-
-// }
-
-// func GetKeywords() []Keyword {
-// 	db := sqlite.New()
-
-// 	connect, err := db.DB()
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	var keywords []Keyword
-// 	db.Find(&keywords)
-
-// 	connect.Close()
-
-// 	return keywords
-// }
-
-// func (c *Keyword) Create() {
-// 	db := sqlite.New()
-
-// 	connect, err := db.DB()
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	db.Create(c)
-
-// 	connect.Close()
-// }
-
-// func (c *Keyword) Update() {
-// 	db := sqlite.New()
-
-// 	connect, err := db.DB()
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	db.Save(c)
-
-// 	connect.Close()
-// }
-
-// func (c *Keyword) Delete() {
-// 	db := sqlite.New()
-
-// 	connect, err := db.DB()
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	db.Delete(c)
-
-// 	connect.Close()
+// 	c.IndentedJSON(http.StatusOK, gin.H{"data": tokens})
 // }

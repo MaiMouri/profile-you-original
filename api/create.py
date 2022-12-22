@@ -1,5 +1,6 @@
 import requests
 import sys
+import config
 
 args = sys.argv
 
@@ -10,7 +11,6 @@ print(args[1])
 
 url = "https://api.openai.com/v1/images/generations"
 
-OPENAI_API_KEY="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"
 
 payload = {
   "prompt": args[1],
@@ -21,7 +21,7 @@ payload = {
 
 headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer {}'.format(OPENAI_API_KEY)
+    'Authorization': 'Bearer {}'.format(config.OPENAI_API_KEY)
 }
 
 response = requests.post(url, headers=headers, json=payload)

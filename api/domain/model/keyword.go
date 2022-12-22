@@ -6,8 +6,8 @@ import (
 
 type Keyword struct {
 	gorm.Model
-	ID          int    `json:"id`
 	Word        string `json:"word`
 	Description string `json:"description`
 	ImageUrl    string `json:"image_url`
+	KeywordId   string `json:"keyword_id`
 }
