@@ -37,12 +37,29 @@ func (kp *keywordPersistance) GetKeyword(id string) (result *keyword.Keyword, er
 
 	return result_keyword, nil
 }
+func (kp *keywordPersistance) GetLastKeyword() (result *keyword.Keyword, err error) {
+
+	var keyword dto.Keyword
+	if result := kp.Conn.Last(&keyword); result.Error != nil {
+		err := result.Error
+		return nil, err
+	}
+
+	// return &keyword, nil
+	result_keyword, err := dto.AdaptKeyword(&keyword)
+	if err != nil {
+		return nil, err
+	}
+
+	return result_keyword, nil
+}
 
 func (kp *keywordPersistance) GetKeywords() (result []*keyword.Keyword, err error) {
 
 	var keywords []*dto.Keyword
 
-	if result := kp.Conn.Find(&keywords); result.Error != nil {
+	// 降順に変更
+	if result := kp.Conn.Order("created_at desc").Find(&keywords); result.Error != nil {
 		err := result.Error
 		return nil, err
 	}

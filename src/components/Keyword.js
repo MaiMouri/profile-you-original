@@ -1,8 +1,12 @@
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Input from "./form/Input";
+import {  selectKeyword, renewalKeyword } from '../keywordsSlice';
+
+
 
 const Keyword = (props) => {
   const navigate = useNavigate();
@@ -16,6 +20,8 @@ const Keyword = (props) => {
   const [error, setError] = useState(null);
   const [errors, setErrors] = useState([]);
   let { id } = useParams();
+  const { items } = useSelector(selectKeyword);
+  const dispatch = useDispatch();
   
     useEffect(() => {
         const headers = new Headers();
@@ -46,37 +52,37 @@ const Keyword = (props) => {
           ...keyword,
           [name]: value
         });
-        console.log(keyword);
       };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        
-        const requestBody = keyword;
-    
-        // passed validation, so save changes
-        let headers = new Headers();
-        headers.append("Content-Type", "application/json");
-    
-        const requestOptions = {
-          method: "POST",
-          headers: headers,
-          body: JSON.stringify(requestBody)
-        };
 
-        fetch(`/keyword/update/`, requestOptions)
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.error) {
-            console.log(data.error);
-          } else {
-            console.log("UPDATED");
-            navigate("/keywords");
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+        dispatch(renewalKeyword(keyword));
+        // const requestBody = keyword;
+    
+        // // passed validation, so save changes
+        // let headers = new Headers();
+        // headers.append("Content-Type", "application/json");
+    
+        // const requestOptions = {
+        //   method: "POST",
+        //   headers: headers,
+        //   body: JSON.stringify(requestBody)
+        // };
+
+        // fetch(`/keyword/update/`, requestOptions)
+        // .then((response) => response.json())
+        // .then((data) => {
+        //   if (data.error) {
+        //     console.log(data.error);
+        //   } else {
+        //     console.log("UPDATED");
+        //     navigate("/keywords");
+        //   }
+        // })
+        // .catch((err) => {
+        //   console.log(err);
+        // });
       }
 
     return(

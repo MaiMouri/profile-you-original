@@ -23,8 +23,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import Keyword from "./components/Keyword";
 import Login from "./components/Login";
-import {addKeyword, deleteKeyword} from './keywordsSlice'
-import { selectKeyword, fetchItems, postKeyword } from './keywordsSlice';
+import { selectKeyword, fetchItems, postKeyword, delKeyword } from './keywordsSlice';
 
 
 export const userToken = createContext();
@@ -70,23 +69,8 @@ const App = () => {
 
   //useSelectorでstoreの中のstateにアクセスできる。usersはreducer名
   const { loadingNow, error, items } = useSelector(selectKeyword);
-  // const items = useSelector(selectKeyword);
   // const keywordList = useSelector((state) => state.keywords.value);
   const dispatch = useDispatch();
-
-  const handleClick = () => {
-    dispatch(
-      addKeyword({
-        KeywordId: "NEW ID",
-        word: "NEW",
-        Description: "NEW Description",
-        ImageUrl: "NEW Image URL",
-      })
-    );
-
-    updateWord("")
-    // setContent("");
-  };
 
   // START FETCHING
   useEffect(() => {
@@ -102,7 +86,6 @@ const App = () => {
     fetch(`http://localhost:8080/keywords`, requestOptions)
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         setKeywords(data);
       })
       .catch(err => {
@@ -124,33 +107,34 @@ const App = () => {
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
-        let headers = new Headers();
-        headers.append("Content-Type", "application/json");
-        // headers.append("Authorization", "Bearer " + jwtToken)
+        dispatch(delKeyword(id));
+        // let headers = new Headers();
+        // headers.append("Content-Type", "application/json");
+        // // headers.append("Authorization", "Bearer " + jwtToken)
 
-        const requestBody = keyword;
-        requestBody.KeywordId = id;
+        // const requestBody = keyword;
+        // requestBody.KeywordId = id;
 
-        const requestOptions = {
-          method: "POST",
-          headers: headers,
-          body: JSON.stringify(requestBody)
-        };
+        // const requestOptions = {
+        //   method: "POST",
+        //   headers: headers,
+        //   body: JSON.stringify(requestBody)
+        // };
         
-        const url = `http://localhost:8080/keyword/delete/`;
-        console.log(requestOptions);
-        fetch(url, requestOptions)
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.error) {
-              console.log(data.error);
-            } else {
-              setKeywords((keywords) => keywords.filter((keyword) => keyword.KeywordId !== data.data));
-            }
-          })
-          .catch(err => {
-            console.log(err);
-          });
+        // const url = `http://localhost:8080/keyword/delete/`;
+        // console.log(requestOptions);
+        // fetch(url, requestOptions)
+        //   .then((response) => response.json())
+        //   .then((data) => {
+        //     if (data.error) {
+        //       console.log(data.error);
+        //     } else {
+        //       setKeywords((keywords) => keywords.filter((keyword) => keyword.KeywordId !== data.data));
+        //     }
+        //   })
+        //   .catch(err => {
+        //     console.log(err);
+        //   });
       }
     });
   }
@@ -170,8 +154,8 @@ const App = () => {
       ImageUrl: "",
       KeywordId: "",
     }
-    dispatch(postKeyword(newKeyword));
-    // const request = await axios.post(`http://localhost:8080/keyword/create/${word}`);
+    const test = await dispatch(postKeyword(newKeyword));
+    console.log(test)
     // const result = await axios.get(`http://localhost:8080/keyword/create/${word}`);
     // updateImage(result.data);
     
@@ -194,15 +178,16 @@ const App = () => {
     //         if (data.error) {
     //           console.log(data.error);
     //         } else {
-    //           console.log(data.data)
+    //           console.log(data)
     //           setKeywords([...keywords,
     //             data.data,
     //           ]);
     //           // tentative first aid
-    //           window.location.reload();
+    //           // window.location.reload();
     //           navigate("/keywords")
     //         }
     //       })
+    updateWord("")
     updateLoading(false);
   };
 
@@ -256,7 +241,8 @@ const App = () => {
             <SkeletonText />
           </Stack>
         ) : image ? (
-          <Image src={`data:image/png;base64,${image}`} boxShadow="lg" />
+          // <Image src={`data:image/png;base64,${image}`} boxShadow="lg" />
+          <Image src={image} boxShadow="lg" />
         ) : null}
 
         <pre>{JSON.stringify(word)}</pre>
@@ -277,20 +263,9 @@ const App = () => {
             }}/>
           {/* <Route path={`/keywords`} element={<Keywords keywords={keywords} confirmDelete={confirmDelete}/>} /> */}
           <Route path={`/keywords`} element={<Keywords keywords={items} confirmDelete={confirmDelete}/>} />
-          <Route path={`/keywords/:id`} element={<Keyword />} />
+          <Route path={`/keywords/:id`} element={<Keyword />} dispatch={dispatch} />
         </Routes>
         </userToken.Provider>
-        <div className="displayPosts">
-        {items.map((keyword) => (
-          <div key={keyword.KeywordId} className="keyword">
-            <h1 className="keywordName">{keyword.Word}</h1>
-            <h1 className="keywordContent">{keyword.Description}</h1>
-            <button onClick={() => dispatch(deleteKeyword({ KeywordId: keyword.KeywordId }))}>
-              削除
-            </button>
-          </div>
-            ))}
-         </div>
 
       </Container>
     </ChakraProvider>

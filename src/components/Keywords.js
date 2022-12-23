@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Link, redirect } from "react-router-dom";
 import { Button } from "@chakra-ui/react";
-import { format, formatDistance, formatRelative, subDays } from 'date-fns'
-import { json } from "react-router-dom";
+// import { format, formatDistance, formatRelative, subDays } from 'date-fns'
 import Keyword from "./Keyword";
 
 const Keywords = (props) => {
