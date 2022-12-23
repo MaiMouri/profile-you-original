@@ -12,8 +12,11 @@ require (
 )
 
 require (
+	github.com/cloudinary/cloudinary-go/v2 v2.2.0 // indirect
+	github.com/creasty/defaults v1.5.1 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
 )
 

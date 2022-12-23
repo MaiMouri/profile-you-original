@@ -3,10 +3,8 @@ package imagegenerator
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -31,10 +29,6 @@ type RequestBody struct {
 	Size   string `json:"size"`
 }
 
-// func (d Data) String() string {
-// 	return fmt.Sprintf(d.Url)
-// }
-
 func ImageGenerator(keyword string) []Data {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -53,7 +47,7 @@ func ImageGenerator(keyword string) []Data {
 	if err != nil {
 		panic("Error")
 	}
-	fmt.Println(string(jsonString))
+	// fmt.Println(string(jsonString))
 	endPoint := "https://api.openai.com/v1/images/generations" //APIのエンドポイントを指定(このURLでOK)
 	req, err := http.NewRequest("POST", endPoint, bytes.NewBuffer(jsonString))
 	if err != nil {
@@ -65,8 +59,9 @@ func ImageGenerator(keyword string) []Data {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", bearer)
 
-	dump, _ := httputil.DumpRequestOut(req, true)
-	fmt.Printf("%s", dump)
+	// // Header information
+	// dump, _ := httputil.DumpRequestOut(req, true)
+	// fmt.Printf("%s", dump)
 
 	client := new(http.Client)
 	resp, err := client.Do(req)
@@ -80,7 +75,7 @@ func ImageGenerator(keyword string) []Data {
 		panic(err)
 	}
 
-	fmt.Printf("%#v\n", string(bytes))
+	// fmt.Printf("%#v\n", string(bytes))
 
 	b := bytes
 	var d DallEAPIResponse
@@ -88,6 +83,6 @@ func ImageGenerator(keyword string) []Data {
 	if err := json.Unmarshal(b, &d); err != nil {
 		panic(err)
 	}
-	fmt.Println(&d)
+	// fmt.Println(&d)
 	return d.Data
 }

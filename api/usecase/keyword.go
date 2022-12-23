@@ -8,18 +8,8 @@ import (
 )
 
 type KeywordUseCase interface {
-	// 221212
-	// GetKeyword(id int) (result *model.Keyword, err error)
-	// GetKeywords() (result []model.Keyword, err error)
-	// Create(k model.Keyword) error
-	// Update(k model.Keyword) error
-	// Delete(k model.Keyword) error
-	// 221213
-	// GetKeyword(id int) (result *model.Keyword, err error)
-	// GetKeywords() (result []model.Keyword, err error)
-	// UpdateKeyword(id int, word string, image_url string) error
-	// DeleteKeyword(id int) error
 	GetKeyword(id string) (result *keyword.Keyword, err error)
+	GetLastKeyword() (result *keyword.Keyword, err error)
 	GetKeywords() (result []*keyword.Keyword, err error)
 	CreateKeyword(word string, description string, imgaeUrl string) error
 	UpdateKeyword(id string, word string, description string, imageUrl string) error
@@ -39,6 +29,15 @@ func NewKeywordUseCase(kr repository.KeywordRepository) KeywordUseCase {
 
 func (ku *keywordUseCase) GetKeyword(id string) (result *keyword.Keyword, err error) {
 	keyword, err := ku.keywordRepository.GetKeyword(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return keyword, nil
+}
+
+func (ku *keywordUseCase) GetLastKeyword() (result *keyword.Keyword, err error) {
+	keyword, err := ku.keywordRepository.GetLastKeyword()
 	if err != nil {
 		return nil, err
 	}

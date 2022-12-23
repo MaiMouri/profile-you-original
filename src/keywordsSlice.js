@@ -1,45 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
-
+import { getKeywords, createKeyword, changeKeyword, removeKeyword } from './api';
 import { KeywordsData } from "./DummyData";
-
-async function getKeywords() {
-  const headers = new Headers();
-    headers.append("Content-Type", "application/json");
-
-    const requestOptions = {
-      method: "GET",
-      headers: headers,
-    }
-  const res = await fetch('http://localhost:8080/keywords', requestOptions);
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.message);
-  console.log(json);
-  return json;
-}
-
-async function createKeyword(keyword) {
-  const requestBody = {
-    Id: 0,
-    Word: "",
-    Description: "",
-    ImageUrl: "",
-    KeywordId: ""
-  };
-  requestBody.word = keyword.Word;
-  const headers = new Headers();
-  headers.append("Content-Type", "application/json");
-
-  const requestOptions = {
-    method: "POST",
-    headers: headers,
-    body: JSON.stringify(requestBody),
-  }
-  const res = await fetch(`http://localhost:8080/keyword/create/${keyword.Word}`, requestOptions);
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.message);
-  console.log(json);
-  return json;
-}
 
 
 //createSliceを使ったら reducer を作成するだけで自動的に action type も定義してくれるし action creator も生成。
@@ -51,16 +12,25 @@ export const keywordSlice = createSlice({
   reducers: {
     //addUser -> action type
     addKeyword: (state, action) => {
-      console.log(state);
-
       state.items = [action.payload, ...state.items]
     },
-
+    updateKeyword: (state, action) => {
+      const { KeywordId, Word, ImageUrl, Description } = action.payload
+      const existingKeyword = state.items.find((keyword) => keyword.KeywordId === KeywordId);
+      console.log("upadtaKeyword in slice" + existingKeyword);
+      console.log(KeywordId, Word, ImageUrl, Description);
+      // state.items = state.items.map((item) => item.KeywordId === action.payload.KeywordId);
+      if (existingKeyword) {
+        existingKeyword.Word = Word;
+        existingKeyword.Description = Description;
+        existingKeyword.ImageUrl = ImageUrl;
+      }
+    },
     deleteKeyword: (state, action) => {
       state.items = state.items.filter((item) => item.KeywordId !== action.payload.KeywordId);
     },
      // 通信を開始した時に呼ぶ関数
-     fetchStart(state, action) {
+    fetchStart(state, action) {
       state.loadingNow = true;
       state.error = null;
     },
@@ -79,7 +49,7 @@ export const keywordSlice = createSlice({
 });
 
 // Actions
-export const { addKeyword, deleteKeyword, fetchStart, fetchFailure, fetchSuccess } = keywordSlice.actions;
+export const { addKeyword, updateKeyword, deleteKeyword, fetchStart, fetchFailure, fetchSuccess } = keywordSlice.actions;
 
 
 // 外部からはこの関数を呼んでもらう
@@ -94,6 +64,22 @@ export const fetchItems = () => async dispatch => {
 export const postKeyword = (word) => async dispatch => {
   try {
     dispatch(addKeyword(await createKeyword(word)));
+  } catch (error) {
+    dispatch(fetchFailure(error.stack));
+  }
+};
+
+export const renewalKeyword = (id) => async dispatch => {
+  try {
+    dispatch(updateKeyword(await changeKeyword(id)));
+  } catch (error) {
+    dispatch(fetchFailure(error.stack));
+  }
+};
+
+export const delKeyword = (id) => async dispatch => {
+  try {
+    dispatch(deleteKeyword(await removeKeyword(id)));
   } catch (error) {
     dispatch(fetchFailure(error.stack));
   }
