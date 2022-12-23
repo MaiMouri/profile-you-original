@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { getKeywords, createKeyword, changeKeyword, removeKeyword } from './api';
-import { KeywordsData } from "./DummyData";
+// import { KeywordsData } from "./DummyData";
 
 
 //createSliceを使ったら reducer を作成するだけで自動的に action type も定義してくれるし action creator も生成。

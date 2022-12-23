@@ -13,7 +13,7 @@ import App from './App';
 import { Provider } from 'react-redux';
 import { configureStore } from "@reduxjs/toolkit";
 import keywordsReducer from './keywordsSlice'
-import store from './store/keywords-store'
+import store from './store/store'
 
 const router = createBrowserRouter([
   {

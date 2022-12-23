@@ -154,8 +154,7 @@ const App = () => {
       ImageUrl: "",
       KeywordId: "",
     }
-    const test = await dispatch(postKeyword(newKeyword));
-    console.log(test)
+    dispatch(postKeyword(newKeyword));
     // const result = await axios.get(`http://localhost:8080/keyword/create/${word}`);
     // updateImage(result.data);
     
@@ -196,7 +195,7 @@ const App = () => {
     <ChakraProvider>
       <Container>
         <div className="col text-end pb-3">
-          <div style={{'margin-bottom':'4px'}}>
+          <div style={{'marginBottom':'4px'}}>
             {localStorage.getItem("user") === "" ? (
               <Link href="/login">
                 <span className="badge bg-success">Login</span>

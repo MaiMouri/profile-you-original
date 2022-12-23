@@ -37,6 +37,11 @@ func NewKeywordController(ku usecase.KeywordUseCase) keywordController {
 }
 
 func (ku *keywordController) GetAllKeywordsGin(c *gin.Context) {
+	header := c.Request.Header.Get("Authorization")
+	fmt.Printf("header's Authorization is :%v\n", header)
+	if header != "" {
+		fmt.Printf("header's Authorization is :%v\n", header)
+	}
 	keywords, err := ku.keywordUseCase.GetKeywords()
 	// fmt.Printf("keywords :%v\n", keywords)
 	if err != nil {

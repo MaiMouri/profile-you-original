@@ -1,11 +1,13 @@
 export async function getKeywords() {
+    const jwtToken = window.localStorage.getItem("token")
     const headers = new Headers();
       headers.append("Content-Type", "application/json");
+      headers.append("Authorization", "Bearer " + jwtToken)
   
-      const requestOptions = {
+    const requestOptions = {
         method: "GET",
         headers: headers,
-      }
+    }
     const res = await fetch('http://localhost:8080/keywords', requestOptions);
     const json = await res.json();
     if (!res.ok) throw new Error(json.message);
@@ -81,5 +83,32 @@ export async function removeKeyword(id) {
     const res = await fetch(`http://localhost:8080/keyword/delete/`, requestOptions);
     const json = await res.json();
     if (!res.ok) throw new Error(json.message);
+    return json;
+  }
+
+
+  export async function userLogin(email, password) {
+    let payload = {
+        email: email,
+        password: password,
+    }
+
+    // passed validation, so save changes
+    let headers = new Headers();
+    headers.append("Content-Type", "application/json");
+
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+    }
+      
+    const res = await fetch(`http://localhost:8080/login/`, requestOptions);
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message);
+    console.log(json);
     return json;
   }

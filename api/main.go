@@ -104,6 +104,13 @@ func main() {
 	r.POST("/login", userController.Authenticate)
 	// r.POST("/refresh", userController.RefreshToken)
 	r.POST("/register", userController.Signup)
+
+	// 認証済のみアクセス可能なグループ
+	// authUserGroup := r.Group("/auth")
+	// authUserGroup.Use(middleware.LoginCheckMiddleware())
+	// {
+	// 	authUserGroup.GET("/keyword/create/:word", keywordController.GetKeyword)
+	// }
 	r.Run(":8080")
 
 	// out, err := exec.Command("/bin/bash", "python3 api/api.py").Output()
