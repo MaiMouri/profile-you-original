@@ -87,10 +87,13 @@ func (controller *userController) Login(ctx *gin.Context) string {
 		return ""
 	}
 
+	// ヘッダーとペイロードの生成
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
-		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+		"user_id": user.ID,
+		"exp":     time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
+	fmt.Printf("Header: %#v\n", token.Header) // Header: map[string]interface {}{"alg":"HS256", "typ":"JWT"}
+	fmt.Printf("Claims: %#v\n", token.Claims) // Claims: jwt.MapClaims{"exp":1674449508, "user_id":0x2}
 
 	//encoded string
 	t, err := token.SignedString([]byte(os.Getenv("SECRET")))
@@ -131,5 +134,12 @@ func (controller *userController) Signup(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{
 		// "token": str_out,
 		"message": "Register success!",
+	})
+}
+
+func (controller *userController) Logout(ctx *gin.Context) {
+	ctx.SetCookie("jwt", "", -1, "", "", false, true)
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "success",
 	})
 }

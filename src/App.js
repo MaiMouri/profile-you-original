@@ -14,7 +14,7 @@ import {
 
 }
   from "@chakra-ui/react"
-import axios from "axios";
+// import axios from "axios";
 import Swal from "sweetalert2";
 import { useEffect, useState, createContext } from "react";
 import Keywords from "./components/Keywords";
@@ -41,7 +41,7 @@ const App = () => {
     ImageUrl: "",
     KeywordId: ""
   });
-  
+
   const [jwtToken, setJwtToken] = useState("");
   const value = { jwtToken, setJwtToken };
   const [alertMessage, setAlertMessage] = useState("");
@@ -55,14 +55,14 @@ const App = () => {
     }
 
     fetch(`/logout`, requestOptions)
-    .catch(error => {
-      console.log("error logging out", error);
-    })
-    .finally(() => {
-      localStorage.removeItem("user");
-      setJwtToken("");
-      // toggleRefresh(false);
-    })
+      .catch(error => {
+        console.log("error logging out", error);
+      })
+      .finally(() => {
+        localStorage.removeItem("user");
+        setJwtToken("");
+        // toggleRefresh(false);
+      })
 
     navigate("/login");
   }
@@ -75,22 +75,22 @@ const App = () => {
   // START FETCHING
   useEffect(() => {
     dispatch(fetchItems());
-    const headers = new Headers();
-    headers.append("Content-Type", "application/json");
+    // const headers = new Headers();
+    // headers.append("Content-Type", "application/json");
 
-    const requestOptions = {
-      method: "GET",
-      headers: headers,
-    }
+    // const requestOptions = {
+    //   method: "GET",
+    //   headers: headers,
+    // }
 
-    fetch(`http://localhost:8080/keywords`, requestOptions)
-      .then((response) => response.json())
-      .then((data) => {
-        setKeywords(data);
-      })
-      .catch(err => {
-        console.log(err);
-      })
+    // fetch(`http://localhost:8080/keywords`, requestOptions)
+    //   .then((response) => response.json())
+    //   .then((data) => {
+    //     setKeywords(data);
+    //   })
+    //   .catch(err => {
+    //     console.log(err);
+    //   })
   }, [dispatch]);
   // FINISH FETCHING
 
@@ -120,7 +120,7 @@ const App = () => {
         //   headers: headers,
         //   body: JSON.stringify(requestBody)
         // };
-        
+
         // const url = `http://localhost:8080/keyword/delete/`;
         // console.log(requestOptions);
         // fetch(url, requestOptions)
@@ -138,13 +138,13 @@ const App = () => {
       }
     });
   }
-    // FINISH DELETE
+  // FINISH DELETE
 
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      console.log({ word });
-      generate(word)
-    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log({ word });
+    generate(word)
+  };
 
   const generate = async (word) => {
     updateLoading(true);
@@ -158,10 +158,10 @@ const App = () => {
     console.log(test)
     // const result = await axios.get(`http://localhost:8080/keyword/create/${word}`);
     // updateImage(result.data);
-    
+
     // const requestBody = keyword;
     // requestBody.word = word;
-    
+
     // let headers = new Headers();
     // headers.append("Content-Type", "application/json");
     //     // headers.append("Authorization", "Bearer " + jwtToken)
@@ -196,7 +196,7 @@ const App = () => {
     <ChakraProvider>
       <Container>
         <div className="col text-end pb-3">
-          <div style={{'margin-bottom':'4px'}}>
+          <div style={{ 'marginBottom': '4px' }}>
             {localStorage.getItem("user") === "" ? (
               <Link href="/login">
                 <span className="badge bg-success">Login</span>
@@ -253,18 +253,18 @@ const App = () => {
         {/* <Keywords keywords={keywords} confirmDelete={confirmDelete}/> */}
         {/* このルーティングめちゃくちゃ苦労した　何だこれ */}
         <userToken.Provider value={value}>
-        <Routes>
-          <Route path={`/login`} element={<Login />} context={{
+          <Routes>
+            <Route path={`/login`} element={<Login />} context={{
               jwtToken,
               setJwtToken,
               setAlertClassName,
               setAlertMessage,
               // toggleRefresh,
-            }}/>
-          {/* <Route path={`/keywords`} element={<Keywords keywords={keywords} confirmDelete={confirmDelete}/>} /> */}
-          <Route path={`/keywords`} element={<Keywords keywords={items} confirmDelete={confirmDelete}/>} />
-          <Route path={`/keywords/:id`} element={<Keyword />} dispatch={dispatch} />
-        </Routes>
+            }} />
+            {/* <Route path={`/keywords`} element={<Keywords keywords={keywords} confirmDelete={confirmDelete}/>} /> */}
+            <Route path={`/keywords`} element={<Keywords keywords={items} confirmDelete={confirmDelete} />} />
+            <Route path={`/keywords/:id`} element={<Keyword />} dispatch={dispatch} />
+          </Routes>
         </userToken.Provider>
 
       </Container>
@@ -273,4 +273,3 @@ const App = () => {
 }
 
 export default App;
-

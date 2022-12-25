@@ -37,8 +37,8 @@ func NewKeywordController(ku usecase.KeywordUseCase) keywordController {
 }
 
 func (ku *keywordController) GetAllKeywordsGin(c *gin.Context) {
+
 	keywords, err := ku.keywordUseCase.GetKeywords()
-	// fmt.Printf("keywords :%v\n", keywords)
 	if err != nil {
 		fmt.Println(err)
 		apiErr := errors.NewBadRequestError("Get all Bad Request")
@@ -265,7 +265,6 @@ func (ku *keywordController) DeleteKeyword(c *gin.Context) {
 
 	keyword_id := json.KeywordId
 
-	fmt.Printf("Delete mode%v\n", keyword_id)
 	err := ku.keywordUseCase.DeleteKeyword(keyword_id)
 	if err != nil {
 		fmt.Println(err)
